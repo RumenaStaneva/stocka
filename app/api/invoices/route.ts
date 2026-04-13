@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await sql`
-      INSERT INTO invoices (user_id, image_url, folder_id, status)
+      INSERT INTO invoices (user_id, original_file_url, folder_id, status)
       VALUES (${userId}, ${image_url}, ${folder_id || null}, 'pending')
       RETURNING *
     `;
