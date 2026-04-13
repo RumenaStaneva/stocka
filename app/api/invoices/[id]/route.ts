@@ -58,7 +58,7 @@ export async function GET(
             'description', li.description,
             'quantity', li.quantity,
             'unit_price', li.unit_price,
-            'amount', li.amount
+            'total_price', li.total_price
           )
         ) FILTER (WHERE li.id IS NOT NULL) as line_items
       FROM invoices i
@@ -133,8 +133,8 @@ export async function PUT(
       // Insert new line items
       for (const item of line_items) {
         await sql`
-          INSERT INTO line_items (invoice_id, description, quantity, unit_price, amount)
-          VALUES (${id}, ${item.description}, ${item.quantity}, ${item.unit_price}, ${item.amount})
+          INSERT INTO line_items (invoice_id, description, quantity, unit_price, total_price)
+          VALUES (${id}, ${item.description}, ${item.quantity}, ${item.unit_price}, ${item.total_price || item.amount})
         `;
       }
     }
