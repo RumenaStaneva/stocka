@@ -26,8 +26,8 @@ export default function DashboardPage() {
     const loadData = async () => {
       try {
         const invoicesResult = await api.getInvoices({
-          search: search || undefined,
-          status: statusFilter || undefined,
+          ...(search && { search }),
+          ...(statusFilter && { status: statusFilter }),
         });
         setInvoices(invoicesResult.data);
       } catch (err) {
