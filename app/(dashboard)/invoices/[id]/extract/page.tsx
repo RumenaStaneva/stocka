@@ -54,7 +54,6 @@ export default function ExtractPage() {
       await api.updateInvoice(invoiceId, {
         ...result.data,
         status: "reviewed",
-        raw_extraction: result.data as unknown as Record<string, unknown>,
         line_items: result.data.line_items,
       });
 

@@ -105,7 +105,7 @@ class ApiClient {
     });
   }
 
-  async updateInvoice(id: string, data: Partial<Invoice>) {
+  async updateInvoice(id: string, data: InvoiceUpdateData) {
     return this.request<{ success: boolean; data: Invoice }>(`/invoices/${id}`, {
       method: "PUT",
       body: data,
@@ -200,6 +200,10 @@ export interface InvoiceDetail extends Invoice {
   line_items: LineItem[];
   tags: Tag[];
 }
+
+export type InvoiceUpdateData = Partial<Omit<InvoiceDetail, 'line_items'>> & {
+  line_items?: Omit<LineItem, 'id' | 'invoice_id'>[];
+};
 
 export interface LineItem {
   id: string;
