@@ -1,4 +1,5 @@
 import { generateText, Output } from "ai";
+import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
 
     const { output } = await generateText({
-      model: "anthropic/claude-sonnet-4.6",
+      model: anthropic("claude-sonnet-4-20250514"),
       output: Output.object({
         schema: invoiceSchema,
       }),
