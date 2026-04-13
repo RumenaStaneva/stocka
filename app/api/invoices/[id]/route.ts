@@ -41,8 +41,8 @@ export async function GET(
         i.invoice_number,
         i.vendor_name,
         i.vendor_address,
-        i.invoice_date,
-        i.due_date,
+        to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date,
+        to_char(i.due_date, 'YYYY-MM-DD') as due_date,
         i.subtotal,
         i.tax_amount,
         i.total_amount,
@@ -93,12 +93,14 @@ export async function PUT(
     const {
       invoice_number,
       vendor_name,
+      vendor_address,
       invoice_date,
       due_date,
       subtotal,
       tax_amount,
       total_amount,
       currency,
+      notes,
       status,
       line_items,
     } = body;
@@ -106,15 +108,17 @@ export async function PUT(
     // Update the invoice
     const result = await sql`
       UPDATE invoices
-      SET 
+      SET
         invoice_number = COALESCE(${invoice_number}, invoice_number),
         vendor_name = COALESCE(${vendor_name}, vendor_name),
+        vendor_address = COALESCE(${vendor_address}, vendor_address),
         invoice_date = COALESCE(${invoice_date}, invoice_date),
         due_date = COALESCE(${due_date}, due_date),
         subtotal = COALESCE(${subtotal}, subtotal),
         tax_amount = COALESCE(${tax_amount}, tax_amount),
         total_amount = COALESCE(${total_amount}, total_amount),
         currency = COALESCE(${currency}, currency),
+        notes = COALESCE(${notes}, notes),
         status = COALESCE(${status}, status),
         updated_at = NOW()
       WHERE id = ${id} AND user_id = ${userId}

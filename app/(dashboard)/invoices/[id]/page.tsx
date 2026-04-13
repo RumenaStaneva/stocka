@@ -19,7 +19,6 @@ import {
   Building,
   DollarSign,
 } from "lucide-react";
-import Image from "next/image";
 
 export default function InvoiceDetailPage() {
   const router = useRouter();
@@ -179,11 +178,9 @@ export default function InvoiceDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
-              <Image
-                src={invoice.image_url}
+              <img
+                src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
                 alt="Invoice"
-                width={600}
-                height={800}
                 className="w-full h-auto"
               />
             </div>

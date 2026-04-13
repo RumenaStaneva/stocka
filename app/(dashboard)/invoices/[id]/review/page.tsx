@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Check, AlertCircle, Trash2, Plus } from "lucide-react";
-import Image from "next/image";
 
 interface LineItemForm {
   description: string;
@@ -191,11 +190,9 @@ export default function ReviewPage() {
           <CardContent>
             {invoice && (
               <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
-                <Image
-                  src={invoice.image_url}
+                <img
+                  src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
                   alt="Invoice"
-                  width={400}
-                  height={600}
                   className="w-full h-auto"
                 />
               </div>

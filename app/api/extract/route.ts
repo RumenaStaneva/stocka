@@ -19,7 +19,7 @@ const invoiceSchema = z.object({
       description: z.string().describe("Description of the item or service"),
       quantity: z.number().nullable().describe("Quantity of items"),
       unit_price: z.number().nullable().describe("Price per unit"),
-      amount: z.number().nullable().describe("Total amount for this line"),
+      total_price: z.number().nullable().describe("Total amount for this line"),
     })
   ).describe("List of line items on the invoice"),
   notes: z.string().nullable().describe("Any additional notes or payment instructions"),
@@ -38,16 +38,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Image URL is required" }, { status: 400 });
     }
 
-    // Fetch the image and convert to base64
-    const imageResponse = await fetch(image_url);
+    // Fetch the image and convert to base64 — private Vercel Blob requires the token
+    const imageResponse = await fetch(image_url, {
+      headers: {
+        authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
+
+    console.log(`[extract] fetch status: ${imageResponse.status}, url: ${image_url}`);
+
+    if (!imageResponse.ok) {
+      console.error(`[extract] failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`);
+      return NextResponse.json({ error: "Failed to fetch invoice image" }, { status: 400 });
+    }
+
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString("base64");
-    
-    // Determine media type from URL or response
-    const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+
+    // Determine media type — strip parameters (e.g. "image/jpeg; charset=utf-8" → "image/jpeg")
+    // and fall back to inferring from the URL extension
+    const rawContentType = imageResponse.headers.get("content-type") || "";
+    const mimeType = rawContentType.split(";")[0].trim();
+    const urlLower = image_url.toLowerCase();
+    const contentType =
+      mimeType && mimeType !== "application/octet-stream"
+        ? mimeType
+        : urlLower.endsWith(".png")
+        ? "image/png"
+        : urlLower.endsWith(".pdf")
+        ? "application/pdf"
+        : urlLower.endsWith(".gif")
+        ? "image/gif"
+        : urlLower.endsWith(".webp")
+        ? "image/webp"
+        : "image/jpeg";
+
+    console.log(`[extract] content-type: "${rawContentType}" → resolved: ${contentType}, size: ${imageBuffer.byteLength} bytes`);
 
     const { output } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-haiku-4-5-20251001"),
       output: Output.object({
         schema: invoiceSchema,
       }),
@@ -57,8 +86,8 @@ export async function POST(request: NextRequest) {
           content: [
             {
               type: "text",
-              text: `You are an expert at extracting data from invoices. 
-              
+              text: `You are an expert at extracting data from invoices.
+
 Analyze this invoice image and extract all the relevant information.
 Be precise with numbers and dates. If a field is not visible or unclear, set it to null.
 For dates, use YYYY-MM-DD format.
