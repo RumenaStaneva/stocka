@@ -7,7 +7,6 @@ import { useAuth } from "@/lib/auth-context";
 import {
   FileText,
   Upload,
-  Tag,
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
@@ -15,7 +14,6 @@ import {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/upload", label: "Upload Invoice", icon: Upload },
-  { href: "/tags", label: "Tags", icon: Tag },
 ];
 
 export function Sidebar() {
