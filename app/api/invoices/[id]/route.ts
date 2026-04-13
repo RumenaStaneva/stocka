@@ -12,10 +12,11 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
 
   const token = authHeader.substring(7);
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key");
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "stocka-secret-key-change-in-production");
     const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
+    return (payload.userId as string) || (payload.sub as string);
+  } catch (error) {
+    console.error("[v0] JWT verification error:", error);
     return null;
   }
 }
