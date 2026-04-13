@@ -7,7 +7,6 @@ import { useAuth } from "@/lib/auth-context";
 import {
   FileText,
   Upload,
-  FolderOpen,
   Tag,
   LogOut,
   LayoutDashboard,
@@ -16,7 +15,6 @@ import {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/upload", label: "Upload Invoice", icon: Upload },
-  { href: "/folders", label: "Folders", icon: FolderOpen },
   { href: "/tags", label: "Tags", icon: Tag },
 ];
 
