@@ -6,7 +6,6 @@ import { api, Invoice, ExtractedData } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
-import Image from "next/image";
 
 export default function ExtractPage() {
   const router = useRouter();
@@ -108,13 +107,11 @@ export default function ExtractPage() {
             <CardTitle>Invoice Image</CardTitle>
           </CardHeader>
           <CardContent>
-            {invoice && (
+            {invoice && invoice.image_url && (
               <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
-                <Image
-                  src={invoice.image_url}
+                <img
+                  src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
                   alt="Invoice"
-                  width={600}
-                  height={800}
                   className="w-full h-auto"
                 />
               </div>
