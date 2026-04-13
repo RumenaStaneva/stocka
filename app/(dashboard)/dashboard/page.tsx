@@ -54,29 +54,26 @@ export default function DashboardPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "Confirmed";
+        return "Потвърдени";
       case "reviewed":
-        return "Reviewed";
+        return "За преглед";
       default:
-        return "Pending";
+        return "Изчакващи";
     }
   };
 
   const formatCurrency = (amount: number | null, currency: string) => {
     if (amount === null) return "-";
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("bg-BG", {
       style: "currency",
-      currency: currency || "USD",
+      currency: currency || "BGN",
     }).format(amount);
   };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const [year, month, day] = dateStr.split("T")[0].split("-");
+    return `${day}.${month}.${year}`;
   };
 
   return (
@@ -84,15 +81,15 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">Табло</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your invoices and extracted data
+            Управлявайте фактурите и извлечените данни
           </p>
         </div>
         <Link href="/upload">
           <Button>
             <Upload className="h-4 w-4 mr-2" />
-            Upload Invoice
+            Качи фактура
           </Button>
         </Link>
       </div>
@@ -102,7 +99,7 @@ export default function DashboardPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search invoices..."
+            placeholder="Търси фактури..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -130,22 +127,32 @@ export default function DashboardPage() {
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-pulse text-muted-foreground">
-                Loading...
+                Зареждане...
               </div>
             </div>
           ) : invoices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No invoices found</p>
-              <p className="text-muted-foreground mt-1">
-                Upload your first invoice to get started
+              <p className="text-lg font-medium">
+                {statusFilter === "pending"
+                  ? "Няма изчакващи фактури"
+                  : statusFilter === "reviewed"
+                    ? "Няма фактури за преглед"
+                    : "Няма намерени фактури"}
               </p>
-              <Link href="/upload">
-                <Button className="mt-4">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Invoice
-                </Button>
-              </Link>
+              {!statusFilter || statusFilter === "confirmed" && (
+                <>
+                  <p className="text-muted-foreground mt-1">
+                    Качете първата си фактура, за да започнете
+                  </p>
+                  <Link href="/upload">
+                    <Button className="mt-4">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Качи фактура
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -153,19 +160,19 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Status
+                      Статус
                     </th>
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Invoice #
+                      Фактура №
                     </th>
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Vendor
+                      Доставчик
                     </th>
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Date
+                      Дата
                     </th>
                     <th className="text-right p-4 text-sm font-medium text-muted-foreground">
-                      Amount
+                      Сума
                     </th>
                     <th className="p-4"></th>
                   </tr>
@@ -191,7 +198,7 @@ export default function DashboardPage() {
                       </td>
                       <td className="p-4">
                         <span className="text-sm">
-                          {invoice.vendor_name || "Unknown"}
+                          {invoice.vendor_name || "Неизвестен"}
                         </span>
                       </td>
                       <td className="p-4">
@@ -210,7 +217,7 @@ export default function DashboardPage() {
                       <td className="p-4">
                         <Link href={`/invoices/${invoice.id}`}>
                           <Button variant="ghost" size="sm">
-                            View
+                            Преглед
                             <ChevronRight className="h-4 w-4 ml-1" />
                           </Button>
                         </Link>

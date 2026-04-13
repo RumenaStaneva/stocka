@@ -23,13 +23,13 @@ export default function ExtractPage() {
       try {
         const result = await api.getInvoice(invoiceId);
         setInvoice(result.data);
-        
+
         // If already has extracted data, skip to review
         if (result.data.status !== "pending" && result.data.vendor_name) {
           router.push(`/invoices/${invoiceId}/review`);
           return;
         }
-        
+
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load invoice");
@@ -79,10 +79,10 @@ export default function ExtractPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <p className="text-lg font-medium">Error loading invoice</p>
+            <p className="text-lg font-medium">Грешка при зареждане на фактура</p>
             <p className="text-muted-foreground mt-1">{error}</p>
             <Button onClick={() => router.push("/upload")} className="mt-4">
-              Try Again
+              Опитайте отново
             </Button>
           </CardContent>
         </Card>
@@ -93,9 +93,9 @@ export default function ExtractPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Extract Invoice Data</h1>
+        <h1 className="text-2xl font-bold">Извличане на данни от фактура</h1>
         <p className="text-muted-foreground mt-1">
-          AI will analyze your invoice and extract all relevant information
+          Ще анализираме и извлечем цялата релевантна информация
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function ExtractPage() {
         {/* Invoice Preview */}
         <Card>
           <CardHeader>
-            <CardTitle>Invoice Image</CardTitle>
+            <CardTitle>Изображение на фактура</CardTitle>
           </CardHeader>
           <CardContent>
             {invoice && invoice.image_url && (
@@ -121,7 +121,7 @@ export default function ExtractPage() {
         {/* Extraction Panel */}
         <Card>
           <CardHeader>
-            <CardTitle>AI Extraction</CardTitle>
+            <CardTitle>AI Извличане</CardTitle>
           </CardHeader>
           <CardContent>
             {!extracting && !extractedData && (
@@ -130,17 +130,17 @@ export default function ExtractPage() {
                   <Sparkles className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-lg font-medium text-center">
-                  Ready to extract
+                  Готово за извличане
                 </p>
                 <p className="text-muted-foreground text-center mt-1 mb-6">
-                  Click below to analyze the invoice using AI
+                  Кликнете по-долу за анализ на фактурата
                 </p>
                 {error && (
                   <p className="text-sm text-destructive mb-4">{error}</p>
                 )}
                 <Button onClick={handleExtract} size="lg">
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Extract Data
+                  Извлечи данни
                 </Button>
               </div>
             )}
@@ -148,9 +148,9 @@ export default function ExtractPage() {
             {extracting && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg font-medium">Analyzing invoice...</p>
+                <p className="text-lg font-medium">Анализиране на фактура...</p>
                 <p className="text-muted-foreground mt-1">
-                  This may take a few seconds
+                  Това може да отнеме няколко секунди
                 </p>
               </div>
             )}
