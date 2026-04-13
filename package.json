@@ -1,6 +1,6 @@
 {
-  "name": "stocka",
-  "version": "0.0.1",
+  "name": "stocka-invoice-app",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
