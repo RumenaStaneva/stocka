@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/anthropic':
+        specifier: ^3.0.69
+        version: 3.0.69(zod@4.3.6)
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
@@ -30,8 +33,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       lucide-react:
-        specifier: ^0.344.0
-        version: 0.344.0(react@19.2.5)
+        specifier: ^0.468.0
+        version: 0.468.0(react@19.2.5)
       next:
         specifier: ^15.0.0
         version: 15.5.15(@opentelemetry/api@1.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -196,6 +199,12 @@ importers:
         version: 5.9.3
 
 packages:
+
+  '@ai-sdk/anthropic@3.0.69':
+    resolution: {integrity: sha512-LshR7X3pFugY0o41G2VKTmg1XoGpSl7uoYWfzk6zjVZLhCfeFiwgpOga+eTV4XY1VVpZwKVqRnkDbIL7K2eH5g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
   '@ai-sdk/gateway@3.0.95':
     resolution: {integrity: sha512-ZmUNNbZl3V42xwQzPaNUi+s8eqR2lnrxf0bvB6YbLXpLjHYv0k2Y78t12cNOfY0bxGeuVVTLyk856uLuQIuXEQ==}
@@ -1677,6 +1686,11 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0
 
+  lucide-react@0.468.0:
+    resolution: {integrity: sha512-6koYRhnM2N0GGZIdXzSeiNwguv1gt/FAjZOiPl76roBi3xKEXa4WmfpxgQwTTL4KipXjefrnf3oV4IsYhi4JFA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
+
   magic-string@0.30.8:
     resolution: {integrity: sha512-ISQTe55T2ao7XtlAStud6qwYPZjE4GK1S/BeVPus4jrq6JuOnQ00YKQC581RWhR122W7msZV263KzVeLoqidyQ==}
     engines: {node: '>=12'}
@@ -2551,6 +2565,12 @@ packages:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
+
+  '@ai-sdk/anthropic@3.0.69(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider-utils': 4.0.23(zod@4.3.6)
+      zod: 4.3.6
 
   '@ai-sdk/gateway@3.0.95(zod@4.3.6)':
     dependencies:
@@ -4082,7 +4102,7 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  lucide-react@0.344.0(react@19.2.5):
+  lucide-react@0.468.0(react@19.2.5):
     dependencies:
       react: 19.2.5
 

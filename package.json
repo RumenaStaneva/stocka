@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.69",
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/blob": "^2.3.3",
     "ai": "^6.0.158",
@@ -16,7 +17,7 @@
     "clsx": "^2.1.0",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.468.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
