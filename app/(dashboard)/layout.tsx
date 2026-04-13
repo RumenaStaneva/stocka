@@ -32,9 +32,10 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen">
       <Sidebar />
-      <main className="flex-1 ml-64 p-6">{children}</main>
+      {/* Add top padding on mobile for fixed header, left margin on desktop for sidebar */}
+      <main className="pt-14 md:pt-0 md:ml-64 p-4 md:p-6">{children}</main>
     </div>
   );
 }

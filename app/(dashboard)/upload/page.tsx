@@ -104,28 +104,28 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Upload Invoice</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold">Upload Invoice</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Upload an invoice image to extract data using AI
         </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Select File</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">Select File</CardTitle>
+          <CardDescription className="text-sm">
             Drag and drop or click to select. Supports JPEG, PNG, WebP, PDF (max 10MB)
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
           {!file ? (
             <div
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`relative border-2 border-dashed rounded-lg p-6 md:p-8 text-center transition-colors ${
                 dragActive
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-muted-foreground"
@@ -137,9 +137,9 @@ export default function UploadPage() {
                 onChange={handleInputChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <div className="flex flex-col items-center gap-4">
-                <div className="p-4 rounded-full bg-secondary">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
+              <div className="flex flex-col items-center gap-3 md:gap-4">
+                <div className="p-3 md:p-4 rounded-full bg-secondary">
+                  <Upload className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="font-medium">Drop your invoice here</p>
@@ -147,21 +147,34 @@ export default function UploadPage() {
                     or click to browse files
                   </p>
                 </div>
-                <div className="flex gap-3">
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">
-                      <Camera className="h-4 w-4" />
-                      Take Photo
-                    </span>
-                  </label>
-                </div>
+                {/* Camera button - more prominent on mobile */}
+                <label className="cursor-pointer md:hidden">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleInputChange}
+                    className="hidden"
+                  />
+                  <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium">
+                    <Camera className="h-4 w-4" />
+                    Take Photo
+                  </span>
+                </label>
+                {/* Camera button - secondary on desktop */}
+                <label className="cursor-pointer hidden md:block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleInputChange}
+                    className="hidden"
+                  />
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">
+                    <Camera className="h-4 w-4" />
+                    Take Photo
+                  </span>
+                </label>
               </div>
             </div>
           ) : (
@@ -173,7 +186,7 @@ export default function UploadPage() {
                     alt="Invoice preview"
                     width={600}
                     height={400}
-                    className="w-full h-auto max-h-96 object-contain bg-secondary"
+                    className="w-full h-auto max-h-72 md:max-h-96 object-contain bg-secondary"
                   />
                   <button
                     onClick={clearFile}
@@ -184,7 +197,7 @@ export default function UploadPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary">
-                  <FileImage className="h-8 w-8 text-muted-foreground" />
+                  <FileImage className="h-8 w-8 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{file.name}</p>
                     <p className="text-sm text-muted-foreground">
@@ -193,7 +206,7 @@ export default function UploadPage() {
                   </div>
                   <button
                     onClick={clearFile}
-                    className="p-1.5 rounded-full hover:bg-background transition-colors"
+                    className="p-1.5 rounded-full hover:bg-background transition-colors flex-shrink-0"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -204,8 +217,8 @@ export default function UploadPage() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={clearFile} disabled={uploading}>
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <Button variant="outline" onClick={clearFile} disabled={uploading} className="w-full sm:w-auto">
                   Cancel
                 </Button>
                 <Button onClick={handleUpload} disabled={uploading} className="flex-1">
