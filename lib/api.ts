@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 interface ApiOptions {
   method?: string;
@@ -57,18 +57,19 @@ class ApiClient {
   // Auth
   async login(email: string, password: string) {
     const result = await this.request<{
-      access_token: string;
+      token: string;
       user: { id: string; email: string; name: string };
     }>("/auth/login", {
       method: "POST",
       body: { email, password },
     });
-    this.setToken(result.access_token);
+    this.setToken(result.token);
     return result;
   }
 
   async getMe() {
-    return this.request<{ id: string; email: string; name: string }>("/auth/me");
+    const result = await this.request<{ user: { id: string; email: string; name: string } }>("/auth/me");
+    return result.user;
   }
 
   logout() {
