@@ -60,20 +60,16 @@ export default function InvoiceDetailPage() {
 
   const formatCurrency = (amount: number | null, currency: string) => {
     if (amount === null) return "-";
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("bg-BG", {
       style: "currency",
-      currency: currency || "USD",
+      currency: currency || "BGN",
     }).format(amount);
   };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    const [year, month, day] = dateStr.split("T")[0].split("-");
+    return `${day}.${month}.${year}`;
   };
 
   const getStatusIcon = (status: string) => {
@@ -90,11 +86,11 @@ export default function InvoiceDetailPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "Confirmed";
+        return "Потвърдени";
       case "reviewed":
-        return "Reviewed";
+        return "За преглед";
       default:
-        return "Pending";
+        return "Изчакващи";
     }
   };
 
@@ -112,10 +108,10 @@ export default function InvoiceDetailPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <p className="text-lg font-medium">Error loading invoice</p>
+            <p className="text-lg font-medium">Грешка при зареждане на фактура</p>
             <p className="text-muted-foreground mt-1">{error}</p>
             <Link href="/dashboard">
-              <Button className="mt-4">Back to Dashboard</Button>
+              <Button className="mt-4">Към таблото</Button>
             </Link>
           </CardContent>
         </Card>
@@ -131,12 +127,12 @@ export default function InvoiceDetailPage() {
           <Link href="/dashboard">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              Назад
             </Button>
           </Link>
           <div>
             <h1 className="text-2xl font-bold">
-              Invoice {invoice.invoice_number || "#" + invoice.id.slice(0, 8)}
+              Фактура {invoice.invoice_number || "#" + invoice.id.slice(0, 8)}
             </h1>
             <div className="flex items-center gap-2 mt-1">
               {getStatusIcon(invoice.status)}
@@ -150,7 +146,7 @@ export default function InvoiceDetailPage() {
           <Link href={`/invoices/${invoice.id}/review`}>
             <Button variant="outline">
               <Edit2 className="h-4 w-4 mr-2" />
-              Edit
+              Редактирай
             </Button>
           </Link>
           <Button
@@ -163,7 +159,7 @@ export default function InvoiceDetailPage() {
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                Изтрий
               </>
             )}
           </Button>
@@ -174,7 +170,7 @@ export default function InvoiceDetailPage() {
         {/* Invoice Image */}
         <Card>
           <CardHeader>
-            <CardTitle>Original Invoice</CardTitle>
+            <CardTitle>Оригинална фактура</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
@@ -194,16 +190,16 @@ export default function InvoiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5 text-muted-foreground" />
-                Vendor Information
+                Информация за доставчик
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">Vendor Name</p>
+                <p className="text-sm text-muted-foreground">Доставчик</p>
                 <p className="font-medium">{invoice.vendor_name || "-"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Address</p>
+                <p className="text-sm text-muted-foreground">Адрес</p>
                 <p className="font-medium">{invoice.vendor_address || "-"}</p>
               </div>
             </CardContent>
@@ -214,16 +210,16 @@ export default function InvoiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-muted-foreground" />
-                Dates
+                Дати
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Invoice Date</p>
+                <p className="text-sm text-muted-foreground">Дата на издаване</p>
                 <p className="font-medium">{formatDate(invoice.invoice_date)}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Due Date</p>
+                <p className="text-sm text-muted-foreground">Срок за плащане</p>
                 <p className="font-medium">{formatDate(invoice.due_date)}</p>
               </div>
             </CardContent>
@@ -234,21 +230,21 @@ export default function InvoiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-muted-foreground" />
-                Amounts
+                Суми
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">Междинна сума</span>
                   <span>{formatCurrency(invoice.subtotal, invoice.currency)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
+                  <span className="text-muted-foreground">Данък</span>
                   <span>{formatCurrency(invoice.tax_amount, invoice.currency)}</span>
                 </div>
                 <div className="flex justify-between pt-3 border-t border-border font-medium text-lg">
-                  <span>Total</span>
+                  <span>Общо</span>
                   <span className="text-primary">
                     {formatCurrency(invoice.total_amount, invoice.currency)}
                   </span>
@@ -263,7 +259,7 @@ export default function InvoiceDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-muted-foreground" />
-                  Line Items
+                  Артикули
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -274,10 +270,10 @@ export default function InvoiceDetailPage() {
                       className="flex justify-between items-start p-3 rounded-lg bg-secondary"
                     >
                       <div className="flex-1">
-                        <p className="font-medium">{item.description || "Item"}</p>
+                        <p className="font-medium">{item.description || "Артикул"}</p>
                         {item.quantity && (
                           <p className="text-sm text-muted-foreground">
-                            Qty: {item.quantity}
+                            Кол.: {item.quantity}
                             {item.unit_price &&
                               ` x ${formatCurrency(item.unit_price, invoice.currency)}`}
                           </p>
@@ -297,7 +293,7 @@ export default function InvoiceDetailPage() {
           {invoice.tags && invoice.tags.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Tags</CardTitle>
+                <CardTitle>Тагове</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -322,7 +318,7 @@ export default function InvoiceDetailPage() {
           {invoice.notes && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardTitle>Бележки</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-wrap">

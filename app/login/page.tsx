@@ -40,24 +40,24 @@ export default function LoginPage() {
               <span className="text-xl font-bold">Stocka</span>
             </div>
           </div>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle>Добре дошли</CardTitle>
+          <CardDescription>Влезте в акаунта си, за да продължите</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              label="Email"
+              label="Имейл"
               type="email"
-              placeholder="you@example.com"
+              placeholder="вие@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
             />
             <Input
-              label="Password"
+              label="Парола"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Въведете паролата си"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -67,7 +67,7 @@ export default function LoginPage() {
               <p className="text-sm text-destructive text-center">{error}</p>
             )}
             <Button type="submit" size="lg" disabled={loading} className="w-full mt-2">
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Влизане..." : "Влез"}
             </Button>
           </form>
         </CardContent>

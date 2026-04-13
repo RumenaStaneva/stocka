@@ -19,12 +19,12 @@ export default function UploadPage() {
   const handleFile = useCallback((selectedFile: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(selectedFile.type)) {
-      setError("Invalid file type. Please upload JPEG, PNG, WebP, or PDF.");
+      setError("Невалиден тип файл. Моля, качете JPEG, PNG, WebP или PDF.");
       return;
     }
 
     if (selectedFile.size > 10 * 1024 * 1024) {
-      setError("File size exceeds 10MB limit.");
+      setError("Размерът на файла надвишава лимита от 10MB.");
       return;
     }
 
@@ -105,17 +105,17 @@ export default function UploadPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Upload Invoice</h1>
+        <h1 className="text-2xl font-bold">Качи фактура</h1>
         <p className="text-muted-foreground mt-1">
-          Upload an invoice image to extract data using AI
+          Качете изображение на фактура за извличане на данни с AI
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Select File</CardTitle>
+          <CardTitle>Избери файл</CardTitle>
           <CardDescription>
-            Drag and drop or click to select. Supports JPEG, PNG, WebP, PDF (max 10MB)
+            Плъзнете и пуснете или кликнете за избор. Поддържа JPEG, PNG, WebP, PDF (макс. 10MB)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -142,9 +142,9 @@ export default function UploadPage() {
                   <Upload className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">Drop your invoice here</p>
+                  <p className="font-medium">Пуснете фактурата тук</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    or click to browse files
+                    или кликнете за разглеждане на файлове
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -158,7 +158,7 @@ export default function UploadPage() {
                     />
                     <span className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">
                       <Camera className="h-4 w-4" />
-                      Take Photo
+                      Направи снимка
                     </span>
                   </label>
                 </div>
@@ -170,7 +170,7 @@ export default function UploadPage() {
                 <div className="relative rounded-lg overflow-hidden border border-border">
                   <Image
                     src={preview}
-                    alt="Invoice preview"
+                    alt="Преглед на фактура"
                     width={600}
                     height={400}
                     className="w-full h-auto max-h-96 object-contain bg-secondary"
@@ -206,18 +206,18 @@ export default function UploadPage() {
 
               <div className="flex gap-3">
                 <Button variant="outline" onClick={clearFile} disabled={uploading}>
-                  Cancel
+                  Отказ
                 </Button>
                 <Button onClick={handleUpload} disabled={uploading} className="flex-1">
                   {uploading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Uploading...
+                      Качване...
                     </>
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload and Extract
+                      Качи и извлечи
                     </>
                   )}
                 </Button>
