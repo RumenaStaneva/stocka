@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Vercel Blob
+    // Upload to Vercel Blob (private store)
     const blob = await put(`invoices/${Date.now()}-${file.name}`, file, {
-      access: "public",
+      access: "private",
     });
 
     return NextResponse.json({
