@@ -8,6 +8,8 @@ const nextConfig = {
       },
     ],
   },
+  // Force clean cache
+  cleanDistDir: true,
 }
 
 module.exports = nextConfig
