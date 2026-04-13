@@ -77,8 +77,13 @@ class ApiClient {
   }
 
   // Invoices
-  async getInvoices(params?: Record<string, string | number>) {
-    const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : "";
+  async getInvoices(params?: Record<string, string | number | undefined>) {
+    const filtered = params
+      ? Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined) as [string, string | number][])
+      : undefined;
+    const query = filtered && Object.keys(filtered).length > 0
+      ? `?${new URLSearchParams(filtered as Record<string, string>)}`
+      : "";
     return this.request<{
       success: boolean;
       data: Invoice[];
@@ -100,7 +105,7 @@ class ApiClient {
     });
   }
 
-  async updateInvoice(id: string, data: Partial<Invoice>) {
+  async updateInvoice(id: string, data: InvoiceUpdateData) {
     return this.request<{ success: boolean; data: Invoice }>(`/invoices/${id}`, {
       method: "PUT",
       body: data,
@@ -195,6 +200,10 @@ export interface InvoiceDetail extends Invoice {
   line_items: LineItem[];
   tags: Tag[];
 }
+
+export type InvoiceUpdateData = Partial<Omit<InvoiceDetail, 'line_items'>> & {
+  line_items?: Omit<LineItem, 'id' | 'invoice_id'>[];
+};
 
 export interface LineItem {
   id: string;
