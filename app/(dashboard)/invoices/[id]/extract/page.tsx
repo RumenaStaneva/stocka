@@ -23,13 +23,13 @@ export default function ExtractPage() {
       try {
         const result = await api.getInvoice(invoiceId);
         setInvoice(result.data);
-        
+
         // If already has extracted data, skip to review
         if (result.data.status !== "pending" && result.data.vendor_name) {
           router.push(`/invoices/${invoiceId}/review`);
           return;
         }
-        
+
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load invoice");
@@ -95,7 +95,7 @@ export default function ExtractPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Извличане на данни от фактура</h1>
         <p className="text-muted-foreground mt-1">
-          AI ще анализира фактурата и ще извлече цялата релевантна информация
+          Ще анализираме и извлечем цялата релевантна информация
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export default function ExtractPage() {
                   Готово за извличане
                 </p>
                 <p className="text-muted-foreground text-center mt-1 mb-6">
-                  Кликнете по-долу за анализ на фактурата с AI
+                  Кликнете по-долу за анализ на фактурата
                 </p>
                 {error && (
                   <p className="text-sm text-destructive mb-4">{error}</p>

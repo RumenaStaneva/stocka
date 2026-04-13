@@ -198,12 +198,62 @@ export default function InvoiceDetailPage() {
                 <p className="text-sm text-muted-foreground">Доставчик</p>
                 <p className="font-medium">{invoice.vendor_name || "-"}</p>
               </div>
+              {invoice.vendor_eik && (
+                <div>
+                  <p className="text-sm text-muted-foreground">ЕИК</p>
+                  <p className="font-medium">{invoice.vendor_eik}</p>
+                </div>
+              )}
+              {invoice.vendor_mol && (
+                <div>
+                  <p className="text-sm text-muted-foreground">МОЛ</p>
+                  <p className="font-medium">{invoice.vendor_mol}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-muted-foreground">Адрес</p>
                 <p className="font-medium">{invoice.vendor_address || "-"}</p>
               </div>
             </CardContent>
           </Card>
+
+          {/* Recipient Info */}
+          {(invoice.recipient_name || invoice.recipient_address || invoice.recipient_mol || invoice.recipient_eik) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-muted-foreground" />
+                  Информация за получател
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {invoice.recipient_name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Получател</p>
+                    <p className="font-medium">{invoice.recipient_name}</p>
+                  </div>
+                )}
+                {invoice.recipient_eik && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">ЕИК</p>
+                    <p className="font-medium">{invoice.recipient_eik}</p>
+                  </div>
+                )}
+                {invoice.recipient_mol && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">МОЛ</p>
+                    <p className="font-medium">{invoice.recipient_mol}</p>
+                  </div>
+                )}
+                {invoice.recipient_address && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Адрес</p>
+                    <p className="font-medium">{invoice.recipient_address}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Dates */}
           <Card>
@@ -236,19 +286,25 @@ export default function InvoiceDetailPage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Междинна сума</span>
+                  <span className="text-muted-foreground">Данъчна основа</span>
                   <span>{formatCurrency(invoice.subtotal, invoice.currency)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Данък</span>
+                  <span className="text-muted-foreground">ДДС</span>
                   <span>{formatCurrency(invoice.tax_amount, invoice.currency)}</span>
                 </div>
                 <div className="flex justify-between pt-3 border-t border-border font-medium text-lg">
-                  <span>Общо</span>
+                  <span>Сума за плащане</span>
                   <span className="text-primary">
                     {formatCurrency(invoice.total_amount, invoice.currency)}
                   </span>
                 </div>
+                {invoice.payment_method && (
+                  <div className="flex justify-between pt-2 border-t border-border">
+                    <span className="text-muted-foreground">Начин на плащане</span>
+                    <span className="text-sm">{invoice.payment_method}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
