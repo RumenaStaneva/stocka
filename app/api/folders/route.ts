@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       ORDER BY path, name
     `;
 
-    return NextResponse.json(folders);
+    return NextResponse.json({ success: true, data: folders });
   } catch (error) {
     console.error("Error fetching folders:", error);
     return NextResponse.json({ error: "Failed to fetch folders" }, { status: 500 });
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       RETURNING id, name, parent_id, path, created_at
     `;
 
-    return NextResponse.json(result[0], { status: 201 });
+    return NextResponse.json({ success: true, data: result[0] }, { status: 201 });
   } catch (error) {
     console.error("Error creating folder:", error);
     return NextResponse.json({ error: "Failed to create folder" }, { status: 500 });
