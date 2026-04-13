@@ -34,7 +34,23 @@ export async function GET(
 
     const invoices = await sql`
       SELECT 
-        i.*,
+        i.id,
+        i.user_id,
+        i.folder_id,
+        i.invoice_number,
+        i.vendor_name,
+        i.vendor_address,
+        i.invoice_date,
+        i.due_date,
+        i.subtotal,
+        i.tax_amount,
+        i.total_amount,
+        i.currency,
+        i.notes,
+        i.original_file_url as image_url,
+        i.status,
+        i.created_at,
+        i.updated_at,
         json_agg(
           json_build_object(
             'id', li.id,
