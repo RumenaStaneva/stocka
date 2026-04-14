@@ -46,16 +46,49 @@ CREATE TABLE IF NOT EXISTS invoices (
   original_file_name VARCHAR(255),
   file_type VARCHAR(50),
   
-  -- Extracted invoice data
+  -- Extracted document data
+  document_type VARCHAR(50) DEFAULT 'invoice', -- 'invoice' | 'order' (Фактура | Поръчка)
   invoice_number VARCHAR(255),
+
+  -- Supplier (Доставчик)
   vendor_name VARCHAR(255),
+  vendor_eik VARCHAR(255),
+  vendor_city VARCHAR(255),
   vendor_address TEXT,
+  vendor_mol VARCHAR(255),
+  vendor_phone VARCHAR(100),
+
+  -- Recipient (Получател)
+  recipient_name VARCHAR(255),
+  recipient_eik VARCHAR(255),
+  recipient_city VARCHAR(255),
+  recipient_address TEXT,
+  recipient_mol VARCHAR(255),
+  recipient_phone VARCHAR(100),
+
+  -- Operational context
+  object_name VARCHAR(255),   -- Обект (e.g. "Склад")
+  operator_name VARCHAR(255), -- Потребител / Съставил
+
   invoice_date DATE,
   due_date DATE,
   subtotal DECIMAL(12, 2),
   tax_amount DECIMAL(12, 2),
   total_amount DECIMAL(12, 2),
-  currency VARCHAR(10) DEFAULT 'USD',
+  currency VARCHAR(10) DEFAULT 'BGN',
+  amount_in_words TEXT,       -- Словом
+  payment_method VARCHAR(255),
+
+  -- Banking block
+  bank_name VARCHAR(255),
+  bank_bic VARCHAR(50),
+  bank_iban VARCHAR(50),
+  vat_number VARCHAR(50),     -- ДДС № (e.g. BG202620404)
+
+  -- Signatures
+  received_by VARCHAR(255),
+  compiled_by VARCHAR(255),
+
   notes TEXT,
   
   -- AI extraction metadata
@@ -72,7 +105,9 @@ CREATE TABLE IF NOT EXISTS invoices (
 CREATE TABLE IF NOT EXISTS line_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-  description TEXT,
+  product_code VARCHAR(100), -- Код
+  description TEXT,          -- Стока / Наименование
+  unit VARCHAR(50),          -- Мярка (e.g. "кг.", "бр.")
   quantity DECIMAL(10, 3),
   unit_price DECIMAL(12, 2),
   total_price DECIMAL(12, 2),

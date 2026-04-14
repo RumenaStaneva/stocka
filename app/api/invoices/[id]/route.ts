@@ -38,40 +38,61 @@ export async function GET(
         i.id,
         i.user_id,
         i.folder_id,
+        i.document_type,
         i.invoice_number,
         i.vendor_name,
+        i.vendor_eik,
+        i.vendor_city,
         i.vendor_address,
         i.vendor_mol,
-        i.vendor_eik,
+        i.vendor_phone,
         i.recipient_name,
+        i.recipient_eik,
+        i.recipient_city,
         i.recipient_address,
         i.recipient_mol,
-        i.recipient_eik,
+        i.recipient_phone,
+        i.object_name,
+        i.operator_name,
         to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date,
         to_char(i.due_date, 'YYYY-MM-DD') as due_date,
         i.subtotal,
         i.tax_amount,
         i.total_amount,
         i.currency,
+        i.amount_in_words,
         i.payment_method,
+        i.bank_name,
+        i.bank_bic,
+        i.bank_iban,
+        i.vat_number,
+        i.received_by,
+        i.compiled_by,
         i.notes,
         i.original_file_url as image_url,
         i.status,
         i.created_at,
         i.updated_at,
-        json_agg(
-          json_build_object(
-            'id', li.id,
-            'description', li.description,
-            'quantity', li.quantity,
-            'unit_price', li.unit_price,
-            'total_price', li.total_price
-          )
-        ) FILTER (WHERE li.id IS NOT NULL) as line_items
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', li.id,
+                'product_code', li.product_code,
+                'description', li.description,
+                'unit', li.unit,
+                'quantity', li.quantity,
+                'unit_price', li.unit_price,
+                'total_price', li.total_price
+              ) ORDER BY li.sort_order, li.created_at
+            )
+            FROM line_items li
+            WHERE li.invoice_id = i.id
+          ),
+          '[]'::json
+        ) as line_items
       FROM invoices i
-      LEFT JOIN line_items li ON li.invoice_id = i.id
       WHERE i.id = ${id} AND i.user_id = ${userId}
-      GROUP BY i.id
     `;
 
     if (invoices.length === 0) {
@@ -98,22 +119,36 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const {
+      document_type,
       invoice_number,
       vendor_name,
+      vendor_eik,
+      vendor_city,
       vendor_address,
       vendor_mol,
-      vendor_eik,
+      vendor_phone,
       recipient_name,
+      recipient_eik,
+      recipient_city,
       recipient_address,
       recipient_mol,
-      recipient_eik,
+      recipient_phone,
+      object_name,
+      operator_name,
       invoice_date,
       due_date,
       subtotal,
       tax_amount,
       total_amount,
       currency,
+      amount_in_words,
       payment_method,
+      bank_name,
+      bank_bic,
+      bank_iban,
+      vat_number,
+      received_by,
+      compiled_by,
       notes,
       status,
       line_items,
@@ -123,22 +158,36 @@ export async function PUT(
     const result = await sql`
       UPDATE invoices
       SET
+        document_type = COALESCE(${document_type}, document_type),
         invoice_number = COALESCE(${invoice_number}, invoice_number),
         vendor_name = COALESCE(${vendor_name}, vendor_name),
+        vendor_eik = COALESCE(${vendor_eik}, vendor_eik),
+        vendor_city = COALESCE(${vendor_city}, vendor_city),
         vendor_address = COALESCE(${vendor_address}, vendor_address),
         vendor_mol = COALESCE(${vendor_mol}, vendor_mol),
-        vendor_eik = COALESCE(${vendor_eik}, vendor_eik),
+        vendor_phone = COALESCE(${vendor_phone}, vendor_phone),
         recipient_name = COALESCE(${recipient_name}, recipient_name),
+        recipient_eik = COALESCE(${recipient_eik}, recipient_eik),
+        recipient_city = COALESCE(${recipient_city}, recipient_city),
         recipient_address = COALESCE(${recipient_address}, recipient_address),
         recipient_mol = COALESCE(${recipient_mol}, recipient_mol),
-        recipient_eik = COALESCE(${recipient_eik}, recipient_eik),
+        recipient_phone = COALESCE(${recipient_phone}, recipient_phone),
+        object_name = COALESCE(${object_name}, object_name),
+        operator_name = COALESCE(${operator_name}, operator_name),
         invoice_date = COALESCE(${invoice_date}, invoice_date),
         due_date = COALESCE(${due_date}, due_date),
         subtotal = COALESCE(${subtotal}, subtotal),
         tax_amount = COALESCE(${tax_amount}, tax_amount),
         total_amount = COALESCE(${total_amount}, total_amount),
         currency = COALESCE(${currency}, currency),
+        amount_in_words = COALESCE(${amount_in_words}, amount_in_words),
         payment_method = COALESCE(${payment_method}, payment_method),
+        bank_name = COALESCE(${bank_name}, bank_name),
+        bank_bic = COALESCE(${bank_bic}, bank_bic),
+        bank_iban = COALESCE(${bank_iban}, bank_iban),
+        vat_number = COALESCE(${vat_number}, vat_number),
+        received_by = COALESCE(${received_by}, received_by),
+        compiled_by = COALESCE(${compiled_by}, compiled_by),
         notes = COALESCE(${notes}, notes),
         status = COALESCE(${status}, status),
         updated_at = NOW()
@@ -156,10 +205,23 @@ export async function PUT(
       await sql`DELETE FROM line_items WHERE invoice_id = ${id}`;
 
       // Insert new line items
-      for (const item of line_items) {
+      for (let i = 0; i < line_items.length; i++) {
+        const item = line_items[i];
         await sql`
-          INSERT INTO line_items (invoice_id, description, quantity, unit_price, total_price)
-          VALUES (${id}, ${item.description}, ${item.quantity}, ${item.unit_price}, ${item.total_price || item.amount})
+          INSERT INTO line_items (
+            invoice_id, product_code, description, unit,
+            quantity, unit_price, total_price, sort_order
+          )
+          VALUES (
+            ${id},
+            ${item.product_code ?? null},
+            ${item.description ?? null},
+            ${item.unit ?? null},
+            ${item.quantity ?? null},
+            ${item.unit_price ?? null},
+            ${item.total_price ?? item.amount ?? null},
+            ${i}
+          )
         `;
       }
     }

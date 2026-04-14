@@ -9,29 +9,52 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Check, AlertCircle, Trash2, Plus } from "lucide-react";
 
 interface LineItemForm {
+  product_code: string;
   description: string;
+  unit: string;
   quantity: string;
   unit_price: string;
   total_price: string;
 }
 
 interface FormData {
+  document_type: "invoice" | "order";
   invoice_number: string;
+
   vendor_name: string;
+  vendor_eik: string;
+  vendor_city: string;
   vendor_address: string;
   vendor_mol: string;
-  vendor_eik: string;
+  vendor_phone: string;
+
   recipient_name: string;
+  recipient_eik: string;
+  recipient_city: string;
   recipient_address: string;
   recipient_mol: string;
-  recipient_eik: string;
+  recipient_phone: string;
+
+  object_name: string;
+  operator_name: string;
+
   invoice_date: string;
   due_date: string;
   subtotal: string;
   tax_amount: string;
   total_amount: string;
   currency: string;
+  amount_in_words: string;
   payment_method: string;
+
+  bank_name: string;
+  bank_bic: string;
+  bank_iban: string;
+  vat_number: string;
+
+  received_by: string;
+  compiled_by: string;
+
   notes: string;
   line_items: LineItemForm[];
 }
@@ -45,24 +68,39 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [visibleFields, setVisibleFields] = useState<Set<string>>(new Set());
 
   const [formData, setFormData] = useState<FormData>({
+    document_type: "invoice",
     invoice_number: "",
     vendor_name: "",
+    vendor_eik: "",
+    vendor_city: "",
     vendor_address: "",
     vendor_mol: "",
-    vendor_eik: "",
+    vendor_phone: "",
     recipient_name: "",
+    recipient_eik: "",
+    recipient_city: "",
     recipient_address: "",
     recipient_mol: "",
-    recipient_eik: "",
+    recipient_phone: "",
+    object_name: "",
+    operator_name: "",
     invoice_date: "",
     due_date: "",
     subtotal: "",
     tax_amount: "",
     total_amount: "",
     currency: "BGN",
+    amount_in_words: "",
     payment_method: "",
+    bank_name: "",
+    bank_bic: "",
+    bank_iban: "",
+    vat_number: "",
+    received_by: "",
+    compiled_by: "",
     notes: "",
     line_items: [],
   });
@@ -73,26 +111,83 @@ export default function ReviewPage() {
         const result = await api.getInvoice(invoiceId);
         setInvoice(result.data);
 
+        // Fields that are always visible (required / key fields)
+        const alwaysVisible = new Set<string>([
+          "document_type",
+          "invoice_number",
+          "currency",
+          "vendor_name",
+          "recipient_name",
+          "total_amount",
+        ]);
+        const visible = new Set<string>(alwaysVisible);
+        const maybe: Record<string, unknown> = {
+          invoice_date: result.data.invoice_date,
+          due_date: result.data.due_date,
+          object_name: result.data.object_name,
+          operator_name: result.data.operator_name,
+          vendor_eik: result.data.vendor_eik,
+          vendor_mol: result.data.vendor_mol,
+          vendor_city: result.data.vendor_city,
+          vendor_phone: result.data.vendor_phone,
+          vendor_address: result.data.vendor_address,
+          recipient_eik: result.data.recipient_eik,
+          recipient_mol: result.data.recipient_mol,
+          recipient_city: result.data.recipient_city,
+          recipient_phone: result.data.recipient_phone,
+          recipient_address: result.data.recipient_address,
+          subtotal: result.data.subtotal,
+          tax_amount: result.data.tax_amount,
+          payment_method: result.data.payment_method,
+          amount_in_words: result.data.amount_in_words,
+          bank_name: result.data.bank_name,
+          bank_bic: result.data.bank_bic,
+          bank_iban: result.data.bank_iban,
+          vat_number: result.data.vat_number,
+          received_by: result.data.received_by,
+          compiled_by: result.data.compiled_by,
+        };
+        for (const [key, value] of Object.entries(maybe)) {
+          if (value !== null && value !== undefined && value !== "") visible.add(key);
+        }
+        setVisibleFields(visible);
+
         setFormData({
+          document_type: result.data.document_type || "invoice",
           invoice_number: result.data.invoice_number || "",
           vendor_name: result.data.vendor_name || "",
+          vendor_eik: result.data.vendor_eik || "",
+          vendor_city: result.data.vendor_city || "",
           vendor_address: result.data.vendor_address || "",
           vendor_mol: result.data.vendor_mol || "",
-          vendor_eik: result.data.vendor_eik || "",
+          vendor_phone: result.data.vendor_phone || "",
           recipient_name: result.data.recipient_name || "",
+          recipient_eik: result.data.recipient_eik || "",
+          recipient_city: result.data.recipient_city || "",
           recipient_address: result.data.recipient_address || "",
           recipient_mol: result.data.recipient_mol || "",
-          recipient_eik: result.data.recipient_eik || "",
+          recipient_phone: result.data.recipient_phone || "",
+          object_name: result.data.object_name || "",
+          operator_name: result.data.operator_name || "",
           invoice_date: result.data.invoice_date || "",
           due_date: result.data.due_date || "",
           subtotal: result.data.subtotal?.toString() || "",
           tax_amount: result.data.tax_amount?.toString() || "",
           total_amount: result.data.total_amount?.toString() || "",
           currency: result.data.currency || "BGN",
+          amount_in_words: result.data.amount_in_words || "",
           payment_method: result.data.payment_method || "",
+          bank_name: result.data.bank_name || "",
+          bank_bic: result.data.bank_bic || "",
+          bank_iban: result.data.bank_iban || "",
+          vat_number: result.data.vat_number || "",
+          received_by: result.data.received_by || "",
+          compiled_by: result.data.compiled_by || "",
           notes: result.data.notes || "",
           line_items: result.data.line_items?.map((item) => ({
+            product_code: item.product_code || "",
             description: item.description || "",
+            unit: item.unit || "",
             quantity: item.quantity?.toString() || "",
             unit_price: item.unit_price?.toString() || "",
             total_price: item.total_price?.toString() || "",
@@ -127,7 +222,14 @@ export default function ReviewPage() {
       ...prev,
       line_items: [
         ...prev.line_items,
-        { description: "", quantity: "", unit_price: "", total_price: "" },
+        {
+          product_code: "",
+          description: "",
+          unit: "",
+          quantity: "",
+          unit_price: "",
+          total_price: "",
+        },
       ],
     }));
   };
@@ -145,26 +247,42 @@ export default function ReviewPage() {
 
     try {
       await api.updateInvoice(invoiceId, {
+        document_type: formData.document_type,
         invoice_number: formData.invoice_number || null,
         vendor_name: formData.vendor_name || null,
+        vendor_eik: formData.vendor_eik || null,
+        vendor_city: formData.vendor_city || null,
         vendor_address: formData.vendor_address || null,
         vendor_mol: formData.vendor_mol || null,
-        vendor_eik: formData.vendor_eik || null,
+        vendor_phone: formData.vendor_phone || null,
         recipient_name: formData.recipient_name || null,
+        recipient_eik: formData.recipient_eik || null,
+        recipient_city: formData.recipient_city || null,
         recipient_address: formData.recipient_address || null,
         recipient_mol: formData.recipient_mol || null,
-        recipient_eik: formData.recipient_eik || null,
+        recipient_phone: formData.recipient_phone || null,
+        object_name: formData.object_name || null,
+        operator_name: formData.operator_name || null,
         invoice_date: formData.invoice_date || null,
         due_date: formData.due_date || null,
         subtotal: formData.subtotal ? parseFloat(formData.subtotal) : null,
         tax_amount: formData.tax_amount ? parseFloat(formData.tax_amount) : null,
         total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null,
         currency: formData.currency,
+        amount_in_words: formData.amount_in_words || null,
         payment_method: formData.payment_method || null,
+        bank_name: formData.bank_name || null,
+        bank_bic: formData.bank_bic || null,
+        bank_iban: formData.bank_iban || null,
+        vat_number: formData.vat_number || null,
+        received_by: formData.received_by || null,
+        compiled_by: formData.compiled_by || null,
         notes: formData.notes || null,
         status: "confirmed",
         line_items: formData.line_items.map((item) => ({
+          product_code: item.product_code || null,
           description: item.description || null,
+          unit: item.unit || null,
           quantity: item.quantity ? parseFloat(item.quantity) : null,
           unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
           total_price: item.total_price ? parseFloat(item.total_price) : null,
@@ -233,11 +351,27 @@ export default function ReviewPage() {
           {/* Basic Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Детайли на фактура</CardTitle>
+              <CardTitle>Детайли на документ</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Тип документ</label>
+                <select
+                  className="h-10 rounded-md border border-input bg-secondary px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={formData.document_type}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      document_type: e.target.value as "invoice" | "order",
+                    }))
+                  }
+                >
+                  <option value="invoice">Фактура</option>
+                  <option value="order">Поръчка</option>
+                </select>
+              </div>
               <Input
-                label="Номер на фактура"
+                label="Номер"
                 value={formData.invoice_number}
                 onChange={(e) => handleChange("invoice_number", e.target.value)}
               />
@@ -246,18 +380,37 @@ export default function ReviewPage() {
                 value={formData.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
               />
-              <Input
-                label="Дата на издаване"
-                type="date"
-                value={formData.invoice_date}
-                onChange={(e) => handleChange("invoice_date", e.target.value)}
-              />
-              <Input
-                label="Срок за плащане"
-                type="date"
-                value={formData.due_date}
-                onChange={(e) => handleChange("due_date", e.target.value)}
-              />
+              {visibleFields.has("invoice_date") && (
+                <Input
+                  label="Дата на издаване"
+                  type="date"
+                  value={formData.invoice_date}
+                  onChange={(e) => handleChange("invoice_date", e.target.value)}
+                />
+              )}
+              {visibleFields.has("due_date") && (
+                <Input
+                  label="Срок за плащане"
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => handleChange("due_date", e.target.value)}
+                />
+              )}
+              {visibleFields.has("object_name") && (
+                <Input
+                  label="Обект"
+                  placeholder="напр. Склад"
+                  value={formData.object_name}
+                  onChange={(e) => handleChange("object_name", e.target.value)}
+                />
+              )}
+              {visibleFields.has("operator_name") && (
+                <Input
+                  label="Потребител"
+                  value={formData.operator_name}
+                  onChange={(e) => handleChange("operator_name", e.target.value)}
+                />
+              )}
             </CardContent>
           </Card>
 
@@ -272,23 +425,49 @@ export default function ReviewPage() {
                 value={formData.vendor_name}
                 onChange={(e) => handleChange("vendor_name", e.target.value)}
               />
-              <div className="grid grid-cols-2 gap-4">
+              {(visibleFields.has("vendor_eik") || visibleFields.has("vendor_mol")) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {visibleFields.has("vendor_eik") && (
+                    <Input
+                      label="ЕИК"
+                      value={formData.vendor_eik}
+                      onChange={(e) => handleChange("vendor_eik", e.target.value)}
+                    />
+                  )}
+                  {visibleFields.has("vendor_mol") && (
+                    <Input
+                      label="МОЛ"
+                      value={formData.vendor_mol}
+                      onChange={(e) => handleChange("vendor_mol", e.target.value)}
+                    />
+                  )}
+                </div>
+              )}
+              {(visibleFields.has("vendor_city") || visibleFields.has("vendor_phone")) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {visibleFields.has("vendor_city") && (
+                    <Input
+                      label="Град"
+                      value={formData.vendor_city}
+                      onChange={(e) => handleChange("vendor_city", e.target.value)}
+                    />
+                  )}
+                  {visibleFields.has("vendor_phone") && (
+                    <Input
+                      label="Телефон"
+                      value={formData.vendor_phone}
+                      onChange={(e) => handleChange("vendor_phone", e.target.value)}
+                    />
+                  )}
+                </div>
+              )}
+              {visibleFields.has("vendor_address") && (
                 <Input
-                  label="ЕИК"
-                  value={formData.vendor_eik}
-                  onChange={(e) => handleChange("vendor_eik", e.target.value)}
+                  label="Адрес"
+                  value={formData.vendor_address}
+                  onChange={(e) => handleChange("vendor_address", e.target.value)}
                 />
-                <Input
-                  label="МОЛ"
-                  value={formData.vendor_mol}
-                  onChange={(e) => handleChange("vendor_mol", e.target.value)}
-                />
-              </div>
-              <Input
-                label="Адрес на доставчик"
-                value={formData.vendor_address}
-                onChange={(e) => handleChange("vendor_address", e.target.value)}
-              />
+              )}
             </CardContent>
           </Card>
 
@@ -303,23 +482,49 @@ export default function ReviewPage() {
                 value={formData.recipient_name}
                 onChange={(e) => handleChange("recipient_name", e.target.value)}
               />
-              <div className="grid grid-cols-2 gap-4">
+              {(visibleFields.has("recipient_eik") || visibleFields.has("recipient_mol")) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {visibleFields.has("recipient_eik") && (
+                    <Input
+                      label="ЕИК"
+                      value={formData.recipient_eik}
+                      onChange={(e) => handleChange("recipient_eik", e.target.value)}
+                    />
+                  )}
+                  {visibleFields.has("recipient_mol") && (
+                    <Input
+                      label="МОЛ"
+                      value={formData.recipient_mol}
+                      onChange={(e) => handleChange("recipient_mol", e.target.value)}
+                    />
+                  )}
+                </div>
+              )}
+              {(visibleFields.has("recipient_city") || visibleFields.has("recipient_phone")) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {visibleFields.has("recipient_city") && (
+                    <Input
+                      label="Град"
+                      value={formData.recipient_city}
+                      onChange={(e) => handleChange("recipient_city", e.target.value)}
+                    />
+                  )}
+                  {visibleFields.has("recipient_phone") && (
+                    <Input
+                      label="Телефон"
+                      value={formData.recipient_phone}
+                      onChange={(e) => handleChange("recipient_phone", e.target.value)}
+                    />
+                  )}
+                </div>
+              )}
+              {visibleFields.has("recipient_address") && (
                 <Input
-                  label="ЕИК"
-                  value={formData.recipient_eik}
-                  onChange={(e) => handleChange("recipient_eik", e.target.value)}
+                  label="Адрес"
+                  value={formData.recipient_address}
+                  onChange={(e) => handleChange("recipient_address", e.target.value)}
                 />
-                <Input
-                  label="МОЛ"
-                  value={formData.recipient_mol}
-                  onChange={(e) => handleChange("recipient_mol", e.target.value)}
-                />
-              </div>
-              <Input
-                label="Адрес на получател"
-                value={formData.recipient_address}
-                onChange={(e) => handleChange("recipient_address", e.target.value)}
-              />
+              )}
             </CardContent>
           </Card>
 
@@ -330,20 +535,24 @@ export default function ReviewPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-3 gap-4">
-                <Input
-                  label="Данъчна основа"
-                  type="number"
-                  step="0.01"
-                  value={formData.subtotal}
-                  onChange={(e) => handleChange("subtotal", e.target.value)}
-                />
-                <Input
-                  label="ДДС"
-                  type="number"
-                  step="0.01"
-                  value={formData.tax_amount}
-                  onChange={(e) => handleChange("tax_amount", e.target.value)}
-                />
+                {visibleFields.has("subtotal") && (
+                  <Input
+                    label="Данъчна основа"
+                    type="number"
+                    step="0.01"
+                    value={formData.subtotal}
+                    onChange={(e) => handleChange("subtotal", e.target.value)}
+                  />
+                )}
+                {visibleFields.has("tax_amount") && (
+                  <Input
+                    label="ДДС"
+                    type="number"
+                    step="0.01"
+                    value={formData.tax_amount}
+                    onChange={(e) => handleChange("tax_amount", e.target.value)}
+                  />
+                )}
                 <Input
                   label="Сума за плащане"
                   type="number"
@@ -352,14 +561,96 @@ export default function ReviewPage() {
                   onChange={(e) => handleChange("total_amount", e.target.value)}
                 />
               </div>
-              <Input
-                label="Начин на плащане"
-                placeholder="напр. Банков път, В брой"
-                value={formData.payment_method}
-                onChange={(e) => handleChange("payment_method", e.target.value)}
-              />
+              {visibleFields.has("payment_method") && (
+                <Input
+                  label="Начин на плащане"
+                  placeholder="напр. Банков път, В брой"
+                  value={formData.payment_method}
+                  onChange={(e) => handleChange("payment_method", e.target.value)}
+                />
+              )}
+              {visibleFields.has("amount_in_words") && (
+                <Input
+                  label="Словом"
+                  placeholder="напр. Двеста деветдесет и седем евро"
+                  value={formData.amount_in_words}
+                  onChange={(e) => handleChange("amount_in_words", e.target.value)}
+                />
+              )}
             </CardContent>
           </Card>
+
+          {/* Banking */}
+          {(visibleFields.has("bank_name") ||
+            visibleFields.has("bank_bic") ||
+            visibleFields.has("bank_iban") ||
+            visibleFields.has("vat_number")) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Банкови детайли</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {visibleFields.has("bank_name") && (
+                  <Input
+                    label="Банка"
+                    value={formData.bank_name}
+                    onChange={(e) => handleChange("bank_name", e.target.value)}
+                  />
+                )}
+                {(visibleFields.has("bank_bic") || visibleFields.has("vat_number")) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {visibleFields.has("bank_bic") && (
+                      <Input
+                        label="BIC"
+                        value={formData.bank_bic}
+                        onChange={(e) => handleChange("bank_bic", e.target.value)}
+                      />
+                    )}
+                    {visibleFields.has("vat_number") && (
+                      <Input
+                        label="ДДС №"
+                        placeholder="напр. BG202620404"
+                        value={formData.vat_number}
+                        onChange={(e) => handleChange("vat_number", e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+                {visibleFields.has("bank_iban") && (
+                  <Input
+                    label="IBAN"
+                    value={formData.bank_iban}
+                    onChange={(e) => handleChange("bank_iban", e.target.value)}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Signatures */}
+          {(visibleFields.has("received_by") || visibleFields.has("compiled_by")) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Подписи</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {visibleFields.has("received_by") && (
+                  <Input
+                    label="Получил"
+                    value={formData.received_by}
+                    onChange={(e) => handleChange("received_by", e.target.value)}
+                  />
+                )}
+                {visibleFields.has("compiled_by") && (
+                  <Input
+                    label="Съставил"
+                    value={formData.compiled_by}
+                    onChange={(e) => handleChange("compiled_by", e.target.value)}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Line Items */}
           <Card>
@@ -379,28 +670,44 @@ export default function ReviewPage() {
                 <div className="space-y-4">
                   {formData.line_items.map((item, index) => (
                     <div key={index} className="flex gap-3 items-start p-3 rounded-lg bg-secondary">
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder="Описание на артикул"
-                          value={item.description}
-                          onChange={(e) => handleLineItemChange(index, "description", e.target.value)}
-                        />
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex gap-2">
+                          <div className="w-28 shrink-0">
+                            <Input
+                              label="Код"
+                              value={item.product_code}
+                              onChange={(e) => handleLineItemChange(index, "product_code", e.target.value)}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Input
+                              label="Стока"
+                              value={item.description}
+                              onChange={(e) => handleLineItemChange(index, "description", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
                           <Input
-                            placeholder="Кол."
+                            label="Мярка"
+                            value={item.unit}
+                            onChange={(e) => handleLineItemChange(index, "unit", e.target.value)}
+                          />
+                          <Input
+                            label="Количество"
                             type="number"
                             value={item.quantity}
                             onChange={(e) => handleLineItemChange(index, "quantity", e.target.value)}
                           />
                           <Input
-                            placeholder="Ед. цена"
+                            label="Цена"
                             type="number"
                             step="0.01"
                             value={item.unit_price}
                             onChange={(e) => handleLineItemChange(index, "unit_price", e.target.value)}
                           />
                           <Input
-                            placeholder="Общо"
+                            label="Стойност"
                             type="number"
                             step="0.01"
                             value={item.total_price}
