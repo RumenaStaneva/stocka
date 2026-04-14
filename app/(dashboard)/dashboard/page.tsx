@@ -14,13 +14,114 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronRight,
+  ChevronDown,
+  Folder,
+  FolderOpen,
 } from "lucide-react";
+
+const MONTH_NAMES_BG = [
+  "Януари",
+  "Февруари",
+  "Март",
+  "Април",
+  "Май",
+  "Юни",
+  "Юли",
+  "Август",
+  "Септември",
+  "Октомври",
+  "Ноември",
+  "Декември",
+];
+
+interface MonthGroup {
+  key: string;
+  label: string;
+  invoices: Invoice[];
+  total: number;
+}
+
+interface VendorGroup {
+  vendor: string;
+  clients: string[];
+  invoices: Invoice[];
+  total: number;
+  currency: string;
+  months: MonthGroup[];
+}
 
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
+
+  const toggleVendor = (vendor: string) =>
+    setExpandedVendors((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
+  const toggleMonth = (key: string) =>
+    setExpandedMonths((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const groupInvoices = (items: Invoice[]): VendorGroup[] => {
+    const byVendor = new Map<string, Invoice[]>();
+    for (const inv of items) {
+      const vendor = inv.vendor_name?.trim() || "Неизвестен доставчик";
+      if (!byVendor.has(vendor)) byVendor.set(vendor, []);
+      byVendor.get(vendor)!.push(inv);
+    }
+
+    const groups: VendorGroup[] = [];
+    for (const [vendor, vendorInvoices] of byVendor) {
+      const byMonth = new Map<string, Invoice[]>();
+      for (const inv of vendorInvoices) {
+        const d = inv.invoice_date?.split("T")[0];
+        const key = d ? d.slice(0, 7) : "unknown";
+        if (!byMonth.has(key)) byMonth.set(key, []);
+        byMonth.get(key)!.push(inv);
+      }
+
+      const months: MonthGroup[] = Array.from(byMonth.entries())
+        .map(([key, invs]) => {
+          const sorted = [...invs].sort((a, b) =>
+            (b.invoice_date || "").localeCompare(a.invoice_date || "")
+          );
+          let label = "Без дата";
+          if (key !== "unknown") {
+            const [year, month] = key.split("-");
+            label = `${MONTH_NAMES_BG[parseInt(month, 10) - 1]} ${year}`;
+          }
+          return {
+            key,
+            label,
+            invoices: sorted,
+            total: sorted.reduce((s, i) => s + (i.total_amount || 0), 0),
+          };
+        })
+        .sort((a, b) => b.key.localeCompare(a.key));
+
+      const clients = Array.from(
+        new Set(
+          vendorInvoices
+            .map((i) => i.recipient_name?.trim())
+            .filter((n): n is string => !!n)
+        )
+      );
+
+      groups.push({
+        vendor,
+        clients,
+        invoices: vendorInvoices,
+        total: vendorInvoices.reduce((s, i) => s + (i.total_amount || 0), 0),
+        currency: vendorInvoices.find((i) => i.currency)?.currency || "BGN",
+        months,
+      });
+    }
+
+    return groups.sort((a, b) => a.vendor.localeCompare(b.vendor, "bg"));
+  };
+
+  const vendorGroups = groupInvoices(invoices);
 
   useEffect(() => {
     const loadData = async () => {
@@ -155,77 +256,112 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Статус
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Фактура №
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Доставчик
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                      Дата
-                    </th>
-                    <th className="text-right p-4 text-sm font-medium text-muted-foreground">
-                      Сума
-                    </th>
-                    <th className="p-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((invoice) => (
-                    <tr
-                      key={invoice.id}
-                      className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors"
+            <div className="divide-y divide-border">
+              {vendorGroups.map((group) => {
+                const vendorOpen = expandedVendors[group.vendor] ?? false;
+                return (
+                  <div key={group.vendor}>
+                    <button
+                      type="button"
+                      onClick={() => toggleVendor(group.vendor)}
+                      className="w-full flex items-center gap-3 p-4 hover:bg-secondary/50 transition-colors text-left"
                     >
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(invoice.status)}
-                          <span className="text-sm">
-                            {getStatusLabel(invoice.status)}
-                          </span>
+                      {vendorOpen ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      {vendorOpen ? (
+                        <FolderOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                      ) : (
+                        <Folder className="h-5 w-5 text-primary flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">
+                          {group.vendor}
                         </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm font-mono">
-                          {invoice.invoice_number || "-"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm">
-                          {invoice.vendor_name || "Неизвестен"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(invoice.invoice_date)}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <span className="text-sm font-medium">
-                          {formatCurrency(
-                            invoice.total_amount,
-                            invoice.currency
-                          )}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <Link href={`/invoices/${invoice.id}`}>
-                          <Button variant="ghost" size="sm">
-                            Преглед
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        {group.clients.length > 0 && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            Клиент: {group.clients.join(", ")}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {group.invoices.length} фактури
+                      </span>
+                      <span className="text-sm font-medium w-28 text-right">
+                        {formatCurrency(group.total, group.currency)}
+                      </span>
+                    </button>
+
+                    {vendorOpen && (
+                      <div className="bg-secondary/20">
+                        {group.months.map((month) => {
+                          const monthKey = `${group.vendor}::${month.key}`;
+                          const monthOpen = expandedMonths[monthKey] ?? true;
+                          return (
+                            <div key={monthKey}>
+                              <button
+                                type="button"
+                                onClick={() => toggleMonth(monthKey)}
+                                className="w-full flex items-center gap-3 py-2 pl-10 pr-4 hover:bg-secondary/50 transition-colors text-left"
+                              >
+                                {monthOpen ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                )}
+                                <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm font-medium flex-1">
+                                  {month.label}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {month.invoices.length}
+                                </span>
+                                <span className="text-xs font-medium w-28 text-right">
+                                  {formatCurrency(month.total, group.currency)}
+                                </span>
+                              </button>
+
+                              {monthOpen && (
+                                <div>
+                                  {month.invoices.map((invoice) => (
+                                    <Link
+                                      key={invoice.id}
+                                      href={`/invoices/${invoice.id}`}
+                                      className="flex items-center gap-3 py-3 pl-16 pr-4 hover:bg-secondary/70 transition-colors border-t border-border/50"
+                                    >
+                                      <div className="flex items-center gap-2 w-36">
+                                        {getStatusIcon(invoice.status)}
+                                        <span className="text-xs text-muted-foreground">
+                                          {getStatusLabel(invoice.status)}
+                                        </span>
+                                      </div>
+                                      <span className="text-sm font-mono flex-1 truncate">
+                                        {invoice.invoice_number || "-"}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground w-24">
+                                        {formatDate(invoice.invoice_date)}
+                                      </span>
+                                      <span className="text-sm font-medium w-28 text-right">
+                                        {formatCurrency(
+                                          invoice.total_amount,
+                                          invoice.currency
+                                        )}
+                                      </span>
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

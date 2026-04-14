@@ -76,26 +76,49 @@ Respond with ONLY a valid JSON object — no explanation, no markdown, no code f
 
 Use exactly this structure (use null for missing fields):
 {
+  "document_type": "invoice | order",
   "invoice_number": "...",
-  "vendor_name": "...",
-  "vendor_address": "...",
-  "vendor_mol": "...",
-  "vendor_eik": "...",
-  "recipient_name": "...",
-  "recipient_address": "...",
-  "recipient_mol": "...",
-  "recipient_eik": "...",
   "invoice_date": "YYYY-MM-DD",
   "due_date": "YYYY-MM-DD",
+
+  "vendor_name": "...",
+  "vendor_eik": "...",
+  "vendor_city": "...",
+  "vendor_address": "...",
+  "vendor_mol": "...",
+  "vendor_phone": "...",
+
+  "recipient_name": "...",
+  "recipient_eik": "...",
+  "recipient_city": "...",
+  "recipient_address": "...",
+  "recipient_mol": "...",
+  "recipient_phone": "...",
+
+  "object_name": "...",
+  "operator_name": "...",
+
   "subtotal": 0.00,
   "tax_amount": 0.00,
   "total_amount": 0.00,
   "currency": "EUR or BGN or USD etc.",
+  "amount_in_words": "...",
   "payment_method": "...",
+
+  "bank_name": "...",
+  "bank_bic": "...",
+  "bank_iban": "...",
+  "vat_number": "...",
+
+  "received_by": "...",
+  "compiled_by": "...",
+
   "notes": "...",
   "line_items": [
     {
+      "product_code": "...",
       "description": "...",
+      "unit": "...",
       "quantity": 0,
       "unit_price": 0.00,
       "total_price": 0.00
@@ -124,24 +147,48 @@ Currency:
 - Do NOT default to BGN if the invoice is in another currency
 - Use the standard ISO code: "BGN", "EUR", "USD", etc.
 
+Document type:
+- Title "Фактура" → document_type: "invoice"
+- Title "Поръчка" → document_type: "order"
+- Default to "invoice" if uncertain
+
 Bulgarian field mappings:
 - "Доставчик" / vendor "Фирма" → vendor_name
-- Vendor Град + Адрес (combined) → vendor_address
-- Vendor "МОЛ" → vendor_mol
 - Vendor "ЕИК" / "Булстат" → vendor_eik
-- "Получател" / recipient "Фирма" → recipient_name
-- Recipient Град + Адрес (combined) → recipient_address
-- Recipient "МОЛ" → recipient_mol
+- Vendor "Град" → vendor_city (city only, NOT combined)
+- Vendor "Адрес" → vendor_address (street/address only, NOT combined with city)
+- Vendor "МОЛ" → vendor_mol
+- Vendor "Телефон" → vendor_phone
+- "Получател" / recipient "Фирма" / "КЛИЕНТ" → recipient_name
 - Recipient "ЕИК" / "Булстат" → recipient_eik
-- "Фактура №" / "No:" → invoice_number
-- "Дата на издаване" → invoice_date
+- Recipient "Град" → recipient_city
+- Recipient "Адрес" → recipient_address
+- Recipient "МОЛ" → recipient_mol
+- Recipient "Телефон" → recipient_phone
+- "Обект" → object_name (e.g. "Склад")
+- "Потребител" → operator_name
+- "Съставил" → compiled_by
+- "Получил" → received_by
+- "Фактура №" / "Поръчка №" / "Номер" / "No:" → invoice_number
+- "Дата" / "Дата на издаване" → invoice_date
 - "Дата на падеж" / "Срок за плащане" → due_date
 - "Данъчна основа" → subtotal
-- "Начислен ДДС" / "ДДС" → tax_amount
-- "Сума за плащане" / "Общо" → total_amount
-- "Начин на плащане" → payment_method
-- Line items: "Наименование"/"Описание"/"Ime на стока" → description, "К-во"/"Количество" → quantity, "Ед. цена" → unit_price, "Стойност" → total_price
-- IBAN, bank name, BIC → notes`,
+- "Начислен ДДС" / "ДДС" (amount row) → tax_amount
+- "Сума за плащане" / "Общо" / "Всичко" → total_amount
+- "Словом" → amount_in_words
+- "Начин на плащане" / "Плащане" → payment_method
+- "Банка" → bank_name
+- "BIC" → bank_bic
+- "IBAN" → bank_iban
+- "ДДС" (when followed by a VAT id like "BG202620404") → vat_number
+- Line items: "Код" → product_code, "Стока"/"Наименование"/"Описание" → description, "Мярка" → unit, "Кол."/"К-во"/"Количество" → quantity, "Цена"/"Ед. цена" → unit_price, "Стойност"/"Общо" → total_price
+
+Amount handling:
+- If only a single total is shown (e.g. "Общо" with no ДДС split), put it in total_amount and leave subtotal and tax_amount as null
+
+Currency detection:
+- If "Словом" / total_in_words contains "евро" → "EUR"
+- If it contains "лев" / "лева" → "BGN"`,
             },
             {
               type: "image",
@@ -166,39 +213,64 @@ Bulgarian field mappings:
     // Normalize all fields to the expected types
     const lineItems = Array.isArray(raw.line_items)
       ? (raw.line_items as Record<string, unknown>[]).map((item) => ({
+          product_code: str(item.product_code),
           description: str(item.description) ?? "",
+          unit: str(item.unit),
           quantity: num(item.quantity),
           unit_price: num(item.unit_price),
           total_price: num(item.total_price),
         }))
       : [];
 
+    const docType = str(raw.document_type);
     const data = {
+      document_type: docType === "order" ? "order" : "invoice",
       invoice_number: str(raw.invoice_number),
-      vendor_name: str(raw.vendor_name),
-      vendor_address: str(raw.vendor_address),
-      vendor_mol: str(raw.vendor_mol),
-      vendor_eik: str(raw.vendor_eik),
-      recipient_name: str(raw.recipient_name),
-      recipient_address: str(raw.recipient_address),
-      recipient_mol: str(raw.recipient_mol),
-      recipient_eik: str(raw.recipient_eik),
       invoice_date: str(raw.invoice_date),
       due_date: str(raw.due_date),
+
+      vendor_name: str(raw.vendor_name),
+      vendor_eik: str(raw.vendor_eik),
+      vendor_city: str(raw.vendor_city),
+      vendor_address: str(raw.vendor_address),
+      vendor_mol: str(raw.vendor_mol),
+      vendor_phone: str(raw.vendor_phone),
+
+      recipient_name: str(raw.recipient_name),
+      recipient_eik: str(raw.recipient_eik),
+      recipient_city: str(raw.recipient_city),
+      recipient_address: str(raw.recipient_address),
+      recipient_mol: str(raw.recipient_mol),
+      recipient_phone: str(raw.recipient_phone),
+
+      object_name: str(raw.object_name),
+      operator_name: str(raw.operator_name),
+
       subtotal: num(raw.subtotal),
       tax_amount: num(raw.tax_amount),
       total_amount: num(raw.total_amount),
       currency: str(raw.currency) ?? "BGN",
+      amount_in_words: str(raw.amount_in_words),
       payment_method: str(raw.payment_method),
+
+      bank_name: str(raw.bank_name),
+      bank_bic: str(raw.bank_bic),
+      bank_iban: str(raw.bank_iban),
+      vat_number: str(raw.vat_number),
+
+      received_by: str(raw.received_by),
+      compiled_by: str(raw.compiled_by),
+
       notes: str(raw.notes),
       line_items: lineItems,
     };
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error("Error extracting invoice data:", error);
     return NextResponse.json(
-      { error: "Failed to extract invoice data" },
+      { error: "Failed to extract invoice data", detail: message },
       { status: 500 }
     );
   }

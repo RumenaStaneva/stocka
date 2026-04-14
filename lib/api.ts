@@ -179,22 +179,43 @@ export interface Invoice {
   id: string;
   user_id: string;
   folder_id: string | null;
+  document_type: "invoice" | "order";
   invoice_number: string | null;
+
   vendor_name: string | null;
+  vendor_eik: string | null;
+  vendor_city: string | null;
   vendor_address: string | null;
   vendor_mol: string | null;
-  vendor_eik: string | null;
+  vendor_phone: string | null;
+
   recipient_name: string | null;
+  recipient_eik: string | null;
+  recipient_city: string | null;
   recipient_address: string | null;
   recipient_mol: string | null;
-  recipient_eik: string | null;
+  recipient_phone: string | null;
+
+  object_name: string | null;
+  operator_name: string | null;
+
   invoice_date: string | null;
   due_date: string | null;
   subtotal: number | null;
   tax_amount: number | null;
   total_amount: number | null;
   currency: string;
+  amount_in_words: string | null;
   payment_method: string | null;
+
+  bank_name: string | null;
+  bank_bic: string | null;
+  bank_iban: string | null;
+  vat_number: string | null;
+
+  received_by: string | null;
+  compiled_by: string | null;
+
   notes: string | null;
   image_url: string;
   image_filename: string;
@@ -215,35 +236,63 @@ export type InvoiceUpdateData = Partial<Omit<InvoiceDetail, 'line_items'>> & {
 export interface LineItem {
   id: string;
   invoice_id: string;
+  product_code: string | null;
   description: string | null;
+  unit: string | null;
+  quantity: number | null;
+  unit_price: number | null;
+  total_price: number | null;
+}
+
+export interface ExtractedLineItem {
+  product_code: string | null;
+  description: string | null;
+  unit: string | null;
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
 }
 
 export interface ExtractedData {
+  document_type: "invoice" | "order";
   invoice_number: string | null;
-  vendor_name: string | null;
-  vendor_address: string | null;
-  vendor_mol: string | null;
-  vendor_eik: string | null;
-  recipient_name: string | null;
-  recipient_address: string | null;
-  recipient_mol: string | null;
-  recipient_eik: string | null;
   invoice_date: string | null;
   due_date: string | null;
+
+  vendor_name: string | null;
+  vendor_eik: string | null;
+  vendor_city: string | null;
+  vendor_address: string | null;
+  vendor_mol: string | null;
+  vendor_phone: string | null;
+
+  recipient_name: string | null;
+  recipient_eik: string | null;
+  recipient_city: string | null;
+  recipient_address: string | null;
+  recipient_mol: string | null;
+  recipient_phone: string | null;
+
+  object_name: string | null;
+  operator_name: string | null;
+
   subtotal: number | null;
   tax_amount: number | null;
   total_amount: number | null;
   currency: string;
+  amount_in_words: string | null;
   payment_method: string | null;
-  line_items: {
-    description: string | null;
-    quantity: number | null;
-    unit_price: number | null;
-    total_price: number | null;
-  }[];
+
+  bank_name: string | null;
+  bank_bic: string | null;
+  bank_iban: string | null;
+  vat_number: string | null;
+
+  received_by: string | null;
+  compiled_by: string | null;
+
+  notes: string | null;
+  line_items: ExtractedLineItem[];
 }
 
 export interface Folder {

@@ -132,7 +132,8 @@ export default function InvoiceDetailPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold">
-              Фактура {invoice.invoice_number || "#" + invoice.id.slice(0, 8)}
+              {invoice.document_type === "order" ? "Поръчка" : "Фактура"}{" "}
+              {invoice.invoice_number || "#" + invoice.id.slice(0, 8)}
             </h1>
             <div className="flex items-center gap-2 mt-1">
               {getStatusIcon(invoice.status)}
@@ -210,15 +211,29 @@ export default function InvoiceDetailPage() {
                   <p className="font-medium">{invoice.vendor_mol}</p>
                 </div>
               )}
-              <div>
-                <p className="text-sm text-muted-foreground">Адрес</p>
-                <p className="font-medium">{invoice.vendor_address || "-"}</p>
-              </div>
+              {invoice.vendor_city && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Град</p>
+                  <p className="font-medium">{invoice.vendor_city}</p>
+                </div>
+              )}
+              {invoice.vendor_address && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Адрес</p>
+                  <p className="font-medium">{invoice.vendor_address}</p>
+                </div>
+              )}
+              {invoice.vendor_phone && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Телефон</p>
+                  <p className="font-medium">{invoice.vendor_phone}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Recipient Info */}
-          {(invoice.recipient_name || invoice.recipient_address || invoice.recipient_mol || invoice.recipient_eik) && (
+          {(invoice.recipient_name || invoice.recipient_address || invoice.recipient_mol || invoice.recipient_eik || invoice.recipient_city || invoice.recipient_phone) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -245,10 +260,45 @@ export default function InvoiceDetailPage() {
                     <p className="font-medium">{invoice.recipient_mol}</p>
                   </div>
                 )}
+                {invoice.recipient_city && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Град</p>
+                    <p className="font-medium">{invoice.recipient_city}</p>
+                  </div>
+                )}
                 {invoice.recipient_address && (
                   <div>
                     <p className="text-sm text-muted-foreground">Адрес</p>
                     <p className="font-medium">{invoice.recipient_address}</p>
+                  </div>
+                )}
+                {invoice.recipient_phone && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Телефон</p>
+                    <p className="font-medium">{invoice.recipient_phone}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Operational context */}
+          {(invoice.object_name || invoice.operator_name) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Оперативни данни</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {invoice.object_name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Обект</p>
+                    <p className="font-medium">{invoice.object_name}</p>
+                  </div>
+                )}
+                {invoice.operator_name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Потребител</p>
+                    <p className="font-medium">{invoice.operator_name}</p>
                   </div>
                 )}
               </CardContent>
@@ -256,24 +306,30 @@ export default function InvoiceDetailPage() {
           )}
 
           {/* Dates */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-                Дати
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Дата на издаване</p>
-                <p className="font-medium">{formatDate(invoice.invoice_date)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Срок за плащане</p>
-                <p className="font-medium">{formatDate(invoice.due_date)}</p>
-              </div>
-            </CardContent>
-          </Card>
+          {(invoice.invoice_date || invoice.due_date) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  Дати
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {invoice.invoice_date && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Дата на издаване</p>
+                    <p className="font-medium">{formatDate(invoice.invoice_date)}</p>
+                  </div>
+                )}
+                {invoice.due_date && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Срок за плащане</p>
+                    <p className="font-medium">{formatDate(invoice.due_date)}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Amounts */}
           <Card>
@@ -285,14 +341,18 @@ export default function InvoiceDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Данъчна основа</span>
-                  <span>{formatCurrency(invoice.subtotal, invoice.currency)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">ДДС</span>
-                  <span>{formatCurrency(invoice.tax_amount, invoice.currency)}</span>
-                </div>
+                {invoice.subtotal !== null && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Данъчна основа</span>
+                    <span>{formatCurrency(invoice.subtotal, invoice.currency)}</span>
+                  </div>
+                )}
+                {invoice.tax_amount !== null && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">ДДС</span>
+                    <span>{formatCurrency(invoice.tax_amount, invoice.currency)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-3 border-t border-border font-medium text-lg">
                   <span>Сума за плащане</span>
                   <span className="text-primary">
@@ -305,9 +365,73 @@ export default function InvoiceDetailPage() {
                     <span className="text-sm">{invoice.payment_method}</span>
                   </div>
                 )}
+                {invoice.amount_in_words && (
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-sm text-muted-foreground">Словом</p>
+                    <p className="text-sm italic">{invoice.amount_in_words}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Banking */}
+          {(invoice.bank_name || invoice.bank_iban || invoice.bank_bic || invoice.vat_number) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Банкови детайли</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {invoice.bank_name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Банка</p>
+                    <p className="font-medium">{invoice.bank_name}</p>
+                  </div>
+                )}
+                {invoice.bank_bic && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">BIC</p>
+                    <p className="font-medium font-mono">{invoice.bank_bic}</p>
+                  </div>
+                )}
+                {invoice.bank_iban && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">IBAN</p>
+                    <p className="font-medium font-mono">{invoice.bank_iban}</p>
+                  </div>
+                )}
+                {invoice.vat_number && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">ДДС №</p>
+                    <p className="font-medium font-mono">{invoice.vat_number}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Signatures */}
+          {(invoice.received_by || invoice.compiled_by) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Подписи</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {invoice.received_by && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Получил</p>
+                    <p className="font-medium">{invoice.received_by}</p>
+                  </div>
+                )}
+                {invoice.compiled_by && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Съставил</p>
+                    <p className="font-medium">{invoice.compiled_by}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Line Items */}
           {invoice.line_items && invoice.line_items.length > 0 && (
@@ -326,12 +450,20 @@ export default function InvoiceDetailPage() {
                       className="flex justify-between items-start p-3 rounded-lg bg-secondary"
                     >
                       <div className="flex-1">
-                        <p className="font-medium">{item.description || "Артикул"}</p>
+                        <p className="font-medium">
+                          {item.product_code && (
+                            <span className="text-muted-foreground font-mono mr-2">
+                              {item.product_code}
+                            </span>
+                          )}
+                          {item.description || "Артикул"}
+                        </p>
                         {item.quantity && (
                           <p className="text-sm text-muted-foreground">
-                            Кол.: {item.quantity}
+                            {item.quantity}
+                            {item.unit ? ` ${item.unit}` : ""}
                             {item.unit_price &&
-                              ` x ${formatCurrency(item.unit_price, invoice.currency)}`}
+                              ` × ${formatCurrency(item.unit_price, invoice.currency)}`}
                           </p>
                         )}
                       </div>
