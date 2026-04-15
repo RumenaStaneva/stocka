@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       invoices = await sql`
         SELECT 
           i.id, i.user_id, i.folder_id, i.invoice_number, i.vendor_name, i.vendor_address,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date, i.subtotal, i.tax_amount, i.total_amount, i.currency,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
           f.name as folder_name
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
       invoices = await sql`
         SELECT 
           i.id, i.user_id, i.folder_id, i.invoice_number, i.vendor_name, i.vendor_address,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date, i.subtotal, i.tax_amount, i.total_amount, i.currency,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
           f.name as folder_name
@@ -48,6 +50,7 @@ export async function GET(request: NextRequest) {
       invoices = await sql`
         SELECT 
           i.id, i.user_id, i.folder_id, i.invoice_number, i.vendor_name, i.vendor_address,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date, i.subtotal, i.tax_amount, i.total_amount, i.currency,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
           f.name as folder_name
