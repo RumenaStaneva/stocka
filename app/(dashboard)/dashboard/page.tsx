@@ -41,13 +41,20 @@ interface MonthGroup {
   total: number;
 }
 
-interface VendorGroup {
-  vendor: string;
-  clients: string[];
+interface RecipientGroup {
+  recipient: string;
   invoices: Invoice[];
   total: number;
   currency: string;
   months: MonthGroup[];
+}
+
+interface VendorGroup {
+  vendor: string;
+  invoices: Invoice[];
+  total: number;
+  currency: string;
+  recipients: RecipientGroup[];
 }
 
 export default function DashboardPage() {
@@ -56,12 +63,43 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
+  const [expandedRecipients, setExpandedRecipients] = useState<Record<string, boolean>>({});
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
 
   const toggleVendor = (vendor: string) =>
     setExpandedVendors((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
+  const toggleRecipient = (key: string) =>
+    setExpandedRecipients((prev) => ({ ...prev, [key]: !prev[key] }));
   const toggleMonth = (key: string) =>
     setExpandedMonths((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const buildMonths = (invs: Invoice[]): MonthGroup[] => {
+    const byMonth = new Map<string, Invoice[]>();
+    for (const inv of invs) {
+      const d = inv.invoice_date?.split("T")[0];
+      const key = d ? d.slice(0, 7) : "unknown";
+      if (!byMonth.has(key)) byMonth.set(key, []);
+      byMonth.get(key)!.push(inv);
+    }
+    return Array.from(byMonth.entries())
+      .map(([key, items]) => {
+        const sorted = [...items].sort((a, b) =>
+          (b.invoice_date || "").localeCompare(a.invoice_date || "")
+        );
+        let label = "Без дата";
+        if (key !== "unknown") {
+          const [year, month] = key.split("-");
+          label = `${MONTH_NAMES_BG[parseInt(month, 10) - 1]} ${year}`;
+        }
+        return {
+          key,
+          label,
+          invoices: sorted,
+          total: sorted.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
+        };
+      })
+      .sort((a, b) => b.key.localeCompare(a.key));
+  };
 
   const groupInvoices = (items: Invoice[]): VendorGroup[] => {
     const byVendor = new Map<string, Invoice[]>();
@@ -73,48 +111,29 @@ export default function DashboardPage() {
 
     const groups: VendorGroup[] = [];
     for (const [vendor, vendorInvoices] of byVendor) {
-      const byMonth = new Map<string, Invoice[]>();
+      const byRecipient = new Map<string, Invoice[]>();
       for (const inv of vendorInvoices) {
-        const d = inv.invoice_date?.split("T")[0];
-        const key = d ? d.slice(0, 7) : "unknown";
-        if (!byMonth.has(key)) byMonth.set(key, []);
-        byMonth.get(key)!.push(inv);
+        const recipient = inv.recipient_name?.trim() || "Неизвестен получател";
+        if (!byRecipient.has(recipient)) byRecipient.set(recipient, []);
+        byRecipient.get(recipient)!.push(inv);
       }
 
-      const months: MonthGroup[] = Array.from(byMonth.entries())
-        .map(([key, invs]) => {
-          const sorted = [...invs].sort((a, b) =>
-            (b.invoice_date || "").localeCompare(a.invoice_date || "")
-          );
-          let label = "Без дата";
-          if (key !== "unknown") {
-            const [year, month] = key.split("-");
-            label = `${MONTH_NAMES_BG[parseInt(month, 10) - 1]} ${year}`;
-          }
-          return {
-            key,
-            label,
-            invoices: sorted,
-            total: sorted.reduce((s, i) => s + (i.total_amount || 0), 0),
-          };
-        })
-        .sort((a, b) => b.key.localeCompare(a.key));
-
-      const clients = Array.from(
-        new Set(
-          vendorInvoices
-            .map((i) => i.recipient_name?.trim())
-            .filter((n): n is string => !!n)
-        )
-      );
+      const recipients: RecipientGroup[] = Array.from(byRecipient.entries())
+        .map(([recipient, recipientInvoices]) => ({
+          recipient,
+          invoices: recipientInvoices,
+          total: recipientInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
+          currency: recipientInvoices.find((i) => i.currency)?.currency || "BGN",
+          months: buildMonths(recipientInvoices),
+        }))
+        .sort((a, b) => a.recipient.localeCompare(b.recipient, "bg"));
 
       groups.push({
         vendor,
-        clients,
         invoices: vendorInvoices,
-        total: vendorInvoices.reduce((s, i) => s + (i.total_amount || 0), 0),
+        total: vendorInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
         currency: vendorInvoices.find((i) => i.currency)?.currency || "BGN",
-        months,
+        recipients,
       });
     }
 
@@ -280,11 +299,6 @@ export default function DashboardPage() {
                         <div className="font-medium truncate">
                           {group.vendor}
                         </div>
-                        {group.clients.length > 0 && (
-                          <div className="text-xs text-muted-foreground truncate">
-                            Клиент: {group.clients.join(", ")}
-                          </div>
-                        )}
                       </div>
                       <span className="text-sm text-muted-foreground">
                         {group.invoices.length} фактури
@@ -296,64 +310,100 @@ export default function DashboardPage() {
 
                     {vendorOpen && (
                       <div className="bg-secondary/20">
-                        {group.months.map((month) => {
-                          const monthKey = `${group.vendor}::${month.key}`;
-                          const monthOpen = expandedMonths[monthKey] ?? true;
+                        {group.recipients.map((recipient) => {
+                          const recipientKey = `${group.vendor}::${recipient.recipient}`;
+                          const recipientOpen =
+                            expandedRecipients[recipientKey] ?? false;
                           return (
-                            <div key={monthKey}>
+                            <div key={recipientKey}>
                               <button
                                 type="button"
-                                onClick={() => toggleMonth(monthKey)}
+                                onClick={() => toggleRecipient(recipientKey)}
                                 className="w-full flex items-center gap-3 py-2 pl-10 pr-4 hover:bg-secondary/50 transition-colors text-left"
                               >
-                                {monthOpen ? (
+                                {recipientOpen ? (
                                   <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 ) : (
                                   <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 )}
-                                <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="text-sm font-medium flex-1">
-                                  {month.label}
+                                {recipientOpen ? (
+                                  <FolderOpen className="h-4 w-4 text-primary/70 flex-shrink-0" />
+                                ) : (
+                                  <Folder className="h-4 w-4 text-primary/70 flex-shrink-0" />
+                                )}
+                                <span className="text-sm font-medium flex-1 truncate">
+                                  {recipient.recipient}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {month.invoices.length}
+                                  {recipient.invoices.length}
                                 </span>
                                 <span className="text-xs font-medium w-28 text-right">
-                                  {formatCurrency(month.total, group.currency)}
+                                  {formatCurrency(recipient.total, recipient.currency)}
                                 </span>
                               </button>
 
-                              {monthOpen && (
-                                <div>
-                                  {month.invoices.map((invoice) => (
-                                    <Link
-                                      key={invoice.id}
-                                      href={`/invoices/${invoice.id}`}
-                                      className="flex items-center gap-3 py-3 pl-16 pr-4 hover:bg-secondary/70 transition-colors border-t border-border/50"
-                                    >
-                                      <div className="flex items-center gap-2 w-36">
-                                        {getStatusIcon(invoice.status)}
-                                        <span className="text-xs text-muted-foreground">
-                                          {getStatusLabel(invoice.status)}
-                                        </span>
-                                      </div>
-                                      <span className="text-sm font-mono flex-1 truncate">
-                                        {invoice.invoice_number || "-"}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground w-24">
-                                        {formatDate(invoice.invoice_date)}
-                                      </span>
-                                      <span className="text-sm font-medium w-28 text-right">
-                                        {formatCurrency(
-                                          invoice.total_amount,
-                                          invoice.currency
+                              {recipientOpen &&
+                                recipient.months.map((month) => {
+                                  const monthKey = `${recipientKey}::${month.key}`;
+                                  const monthOpen = expandedMonths[monthKey] ?? true;
+                                  return (
+                                    <div key={monthKey}>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleMonth(monthKey)}
+                                        className="w-full flex items-center gap-3 py-2 pl-16 pr-4 hover:bg-secondary/50 transition-colors text-left"
+                                      >
+                                        {monthOpen ? (
+                                          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                         )}
-                                      </span>
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
+                                        <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-sm font-medium flex-1">
+                                          {month.label}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {month.invoices.length}
+                                        </span>
+                                        <span className="text-xs font-medium w-28 text-right">
+                                          {formatCurrency(month.total, recipient.currency)}
+                                        </span>
+                                      </button>
+
+                                      {monthOpen && (
+                                        <div>
+                                          {month.invoices.map((invoice) => (
+                                            <Link
+                                              key={invoice.id}
+                                              href={`/invoices/${invoice.id}`}
+                                              className="flex items-center gap-3 py-3 pl-24 pr-4 hover:bg-secondary/70 transition-colors border-t border-border/50"
+                                            >
+                                              <div className="flex items-center gap-2 w-36">
+                                                {getStatusIcon(invoice.status)}
+                                                <span className="text-xs text-muted-foreground">
+                                                  {getStatusLabel(invoice.status)}
+                                                </span>
+                                              </div>
+                                              <span className="text-sm font-mono flex-1 truncate">
+                                                {invoice.invoice_number || "-"}
+                                              </span>
+                                              <span className="text-xs text-muted-foreground w-24">
+                                                {formatDate(invoice.invoice_date)}
+                                              </span>
+                                              <span className="text-sm font-medium w-28 text-right">
+                                                {formatCurrency(
+                                                  invoice.total_amount,
+                                                  invoice.currency
+                                                )}
+                                              </span>
+                                              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                             </div>
                           );
                         })}

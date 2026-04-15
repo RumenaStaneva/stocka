@@ -196,9 +196,6 @@ export interface Invoice {
   recipient_mol: string | null;
   recipient_phone: string | null;
 
-  object_name: string | null;
-  operator_name: string | null;
-
   invoice_date: string | null;
   due_date: string | null;
   subtotal: number | null;
@@ -207,14 +204,6 @@ export interface Invoice {
   currency: string;
   amount_in_words: string | null;
   payment_method: string | null;
-
-  bank_name: string | null;
-  bank_bic: string | null;
-  bank_iban: string | null;
-  vat_number: string | null;
-
-  received_by: string | null;
-  compiled_by: string | null;
 
   notes: string | null;
   image_url: string;
@@ -273,23 +262,12 @@ export interface ExtractedData {
   recipient_mol: string | null;
   recipient_phone: string | null;
 
-  object_name: string | null;
-  operator_name: string | null;
-
   subtotal: number | null;
   tax_amount: number | null;
   total_amount: number | null;
   currency: string;
   amount_in_words: string | null;
   payment_method: string | null;
-
-  bank_name: string | null;
-  bank_bic: string | null;
-  bank_iban: string | null;
-  vat_number: string | null;
-
-  received_by: string | null;
-  compiled_by: string | null;
 
   notes: string | null;
   line_items: ExtractedLineItem[];

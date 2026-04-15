@@ -282,29 +282,6 @@ export default function InvoiceDetailPage() {
             </Card>
           )}
 
-          {/* Operational context */}
-          {(invoice.object_name || invoice.operator_name) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Оперативни данни</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {invoice.object_name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Обект</p>
-                    <p className="font-medium">{invoice.object_name}</p>
-                  </div>
-                )}
-                {invoice.operator_name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Потребител</p>
-                    <p className="font-medium">{invoice.operator_name}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           {/* Dates */}
           {(invoice.invoice_date || invoice.due_date) && (
             <Card>
@@ -374,64 +351,6 @@ export default function InvoiceDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Banking */}
-          {(invoice.bank_name || invoice.bank_iban || invoice.bank_bic || invoice.vat_number) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Банкови детайли</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {invoice.bank_name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Банка</p>
-                    <p className="font-medium">{invoice.bank_name}</p>
-                  </div>
-                )}
-                {invoice.bank_bic && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">BIC</p>
-                    <p className="font-medium font-mono">{invoice.bank_bic}</p>
-                  </div>
-                )}
-                {invoice.bank_iban && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">IBAN</p>
-                    <p className="font-medium font-mono">{invoice.bank_iban}</p>
-                  </div>
-                )}
-                {invoice.vat_number && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">ДДС №</p>
-                    <p className="font-medium font-mono">{invoice.vat_number}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Signatures */}
-          {(invoice.received_by || invoice.compiled_by) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Подписи</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                {invoice.received_by && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Получил</p>
-                    <p className="font-medium">{invoice.received_by}</p>
-                  </div>
-                )}
-                {invoice.compiled_by && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Съставил</p>
-                    <p className="font-medium">{invoice.compiled_by}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Line Items */}
           {invoice.line_items && invoice.line_items.length > 0 && (

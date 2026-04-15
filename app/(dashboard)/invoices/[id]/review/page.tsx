@@ -35,9 +35,6 @@ interface FormData {
   recipient_mol: string;
   recipient_phone: string;
 
-  object_name: string;
-  operator_name: string;
-
   invoice_date: string;
   due_date: string;
   subtotal: string;
@@ -46,14 +43,6 @@ interface FormData {
   currency: string;
   amount_in_words: string;
   payment_method: string;
-
-  bank_name: string;
-  bank_bic: string;
-  bank_iban: string;
-  vat_number: string;
-
-  received_by: string;
-  compiled_by: string;
 
   notes: string;
   line_items: LineItemForm[];
@@ -85,8 +74,6 @@ export default function ReviewPage() {
     recipient_address: "",
     recipient_mol: "",
     recipient_phone: "",
-    object_name: "",
-    operator_name: "",
     invoice_date: "",
     due_date: "",
     subtotal: "",
@@ -95,12 +82,6 @@ export default function ReviewPage() {
     currency: "BGN",
     amount_in_words: "",
     payment_method: "",
-    bank_name: "",
-    bank_bic: "",
-    bank_iban: "",
-    vat_number: "",
-    received_by: "",
-    compiled_by: "",
     notes: "",
     line_items: [],
   });
@@ -124,8 +105,6 @@ export default function ReviewPage() {
         const maybe: Record<string, unknown> = {
           invoice_date: result.data.invoice_date,
           due_date: result.data.due_date,
-          object_name: result.data.object_name,
-          operator_name: result.data.operator_name,
           vendor_eik: result.data.vendor_eik,
           vendor_mol: result.data.vendor_mol,
           vendor_city: result.data.vendor_city,
@@ -140,12 +119,6 @@ export default function ReviewPage() {
           tax_amount: result.data.tax_amount,
           payment_method: result.data.payment_method,
           amount_in_words: result.data.amount_in_words,
-          bank_name: result.data.bank_name,
-          bank_bic: result.data.bank_bic,
-          bank_iban: result.data.bank_iban,
-          vat_number: result.data.vat_number,
-          received_by: result.data.received_by,
-          compiled_by: result.data.compiled_by,
         };
         for (const [key, value] of Object.entries(maybe)) {
           if (value !== null && value !== undefined && value !== "") visible.add(key);
@@ -167,8 +140,6 @@ export default function ReviewPage() {
           recipient_address: result.data.recipient_address || "",
           recipient_mol: result.data.recipient_mol || "",
           recipient_phone: result.data.recipient_phone || "",
-          object_name: result.data.object_name || "",
-          operator_name: result.data.operator_name || "",
           invoice_date: result.data.invoice_date || "",
           due_date: result.data.due_date || "",
           subtotal: result.data.subtotal?.toString() || "",
@@ -177,12 +148,6 @@ export default function ReviewPage() {
           currency: result.data.currency || "BGN",
           amount_in_words: result.data.amount_in_words || "",
           payment_method: result.data.payment_method || "",
-          bank_name: result.data.bank_name || "",
-          bank_bic: result.data.bank_bic || "",
-          bank_iban: result.data.bank_iban || "",
-          vat_number: result.data.vat_number || "",
-          received_by: result.data.received_by || "",
-          compiled_by: result.data.compiled_by || "",
           notes: result.data.notes || "",
           line_items: result.data.line_items?.map((item) => ({
             product_code: item.product_code || "",
@@ -261,8 +226,6 @@ export default function ReviewPage() {
         recipient_address: formData.recipient_address || null,
         recipient_mol: formData.recipient_mol || null,
         recipient_phone: formData.recipient_phone || null,
-        object_name: formData.object_name || null,
-        operator_name: formData.operator_name || null,
         invoice_date: formData.invoice_date || null,
         due_date: formData.due_date || null,
         subtotal: formData.subtotal ? parseFloat(formData.subtotal) : null,
@@ -271,12 +234,6 @@ export default function ReviewPage() {
         currency: formData.currency,
         amount_in_words: formData.amount_in_words || null,
         payment_method: formData.payment_method || null,
-        bank_name: formData.bank_name || null,
-        bank_bic: formData.bank_bic || null,
-        bank_iban: formData.bank_iban || null,
-        vat_number: formData.vat_number || null,
-        received_by: formData.received_by || null,
-        compiled_by: formData.compiled_by || null,
         notes: formData.notes || null,
         status: "confirmed",
         line_items: formData.line_items.map((item) => ({
@@ -394,21 +351,6 @@ export default function ReviewPage() {
                   type="date"
                   value={formData.due_date}
                   onChange={(e) => handleChange("due_date", e.target.value)}
-                />
-              )}
-              {visibleFields.has("object_name") && (
-                <Input
-                  label="Обект"
-                  placeholder="напр. Склад"
-                  value={formData.object_name}
-                  onChange={(e) => handleChange("object_name", e.target.value)}
-                />
-              )}
-              {visibleFields.has("operator_name") && (
-                <Input
-                  label="Потребител"
-                  value={formData.operator_name}
-                  onChange={(e) => handleChange("operator_name", e.target.value)}
                 />
               )}
             </CardContent>
@@ -579,78 +521,6 @@ export default function ReviewPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Banking */}
-          {(visibleFields.has("bank_name") ||
-            visibleFields.has("bank_bic") ||
-            visibleFields.has("bank_iban") ||
-            visibleFields.has("vat_number")) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Банкови детайли</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {visibleFields.has("bank_name") && (
-                  <Input
-                    label="Банка"
-                    value={formData.bank_name}
-                    onChange={(e) => handleChange("bank_name", e.target.value)}
-                  />
-                )}
-                {(visibleFields.has("bank_bic") || visibleFields.has("vat_number")) && (
-                  <div className="grid grid-cols-2 gap-4">
-                    {visibleFields.has("bank_bic") && (
-                      <Input
-                        label="BIC"
-                        value={formData.bank_bic}
-                        onChange={(e) => handleChange("bank_bic", e.target.value)}
-                      />
-                    )}
-                    {visibleFields.has("vat_number") && (
-                      <Input
-                        label="ДДС №"
-                        placeholder="напр. BG202620404"
-                        value={formData.vat_number}
-                        onChange={(e) => handleChange("vat_number", e.target.value)}
-                      />
-                    )}
-                  </div>
-                )}
-                {visibleFields.has("bank_iban") && (
-                  <Input
-                    label="IBAN"
-                    value={formData.bank_iban}
-                    onChange={(e) => handleChange("bank_iban", e.target.value)}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Signatures */}
-          {(visibleFields.has("received_by") || visibleFields.has("compiled_by")) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Подписи</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                {visibleFields.has("received_by") && (
-                  <Input
-                    label="Получил"
-                    value={formData.received_by}
-                    onChange={(e) => handleChange("received_by", e.target.value)}
-                  />
-                )}
-                {visibleFields.has("compiled_by") && (
-                  <Input
-                    label="Съставил"
-                    value={formData.compiled_by}
-                    onChange={(e) => handleChange("compiled_by", e.target.value)}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Line Items */}
           <Card>

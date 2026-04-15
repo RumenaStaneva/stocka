@@ -66,10 +66,6 @@ CREATE TABLE IF NOT EXISTS invoices (
   recipient_mol VARCHAR(255),
   recipient_phone VARCHAR(100),
 
-  -- Operational context
-  object_name VARCHAR(255),   -- Обект (e.g. "Склад")
-  operator_name VARCHAR(255), -- Потребител / Съставил
-
   invoice_date DATE,
   due_date DATE,
   subtotal DECIMAL(12, 2),
@@ -78,16 +74,6 @@ CREATE TABLE IF NOT EXISTS invoices (
   currency VARCHAR(10) DEFAULT 'BGN',
   amount_in_words TEXT,       -- Словом
   payment_method VARCHAR(255),
-
-  -- Banking block
-  bank_name VARCHAR(255),
-  bank_bic VARCHAR(50),
-  bank_iban VARCHAR(50),
-  vat_number VARCHAR(50),     -- ДДС № (e.g. BG202620404)
-
-  -- Signatures
-  received_by VARCHAR(255),
-  compiled_by VARCHAR(255),
 
   notes TEXT,
   
