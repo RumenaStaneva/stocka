@@ -197,13 +197,13 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Табло</h1>
           <p className="text-muted-foreground text-sm sm:text-base mt-1">
-            Управлявайте фактурите и извлечените данни
+            Управлявайте фактурите и извлечените ��анни
           </p>
         </div>
         <Link href="/upload" className="w-full sm:w-auto">
@@ -216,7 +216,7 @@ export default function DashboardPage() {
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Търси фактури..."
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex gap-2 flex-shrink-0">
           {["pending", "reviewed", "confirmed"].map((status) => (
             <Button
               key={status}
@@ -234,7 +234,7 @@ export default function DashboardPage() {
               onClick={() =>
                 setStatusFilter(statusFilter === status ? null : status)
               }
-              className="whitespace-nowrap flex-shrink-0"
+              className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
             >
               {getStatusLabel(status)}
             </Button>

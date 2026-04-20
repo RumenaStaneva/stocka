@@ -32,9 +32,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen overflow-x-hidden">
       <Sidebar />
-      <main className="flex-1 pt-14 lg:pt-0 lg:ml-64 p-4 lg:p-6">{children}</main>
+      <main className="pt-14 lg:pt-0 lg:ml-64 p-4 lg:p-6 min-h-screen">{children}</main>
     </div>
   );
 }
