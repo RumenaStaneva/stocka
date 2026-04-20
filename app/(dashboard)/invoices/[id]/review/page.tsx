@@ -277,16 +277,16 @@ export default function ReviewPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Преглед на извлечените данни</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Преглед на извлечените данни</h1>
+        <p className="text-muted-foreground text-sm sm:text-base mt-1">
           Проверете и редактирайте извлечената информация преди потвърждение
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* Invoice Preview */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 order-2 lg:order-1">
           <CardHeader>
             <CardTitle>Оригинална фактура</CardTitle>
           </CardHeader>
@@ -304,13 +304,13 @@ export default function ReviewPage() {
         </Card>
 
         {/* Extracted Data Form */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-4 sm:space-y-6 order-1 lg:order-2">
           {/* Basic Info */}
           <Card>
             <CardHeader>
               <CardTitle>Детайли на документ</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Тип документ</label>
                 <select
@@ -368,7 +368,7 @@ export default function ReviewPage() {
                 onChange={(e) => handleChange("vendor_name", e.target.value)}
               />
               {(visibleFields.has("vendor_eik") || visibleFields.has("vendor_mol")) && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {visibleFields.has("vendor_eik") && (
                     <Input
                       label="ЕИК"
@@ -386,7 +386,7 @@ export default function ReviewPage() {
                 </div>
               )}
               {(visibleFields.has("vendor_city") || visibleFields.has("vendor_phone")) && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {visibleFields.has("vendor_city") && (
                     <Input
                       label="Град"
@@ -425,7 +425,7 @@ export default function ReviewPage() {
                 onChange={(e) => handleChange("recipient_name", e.target.value)}
               />
               {(visibleFields.has("recipient_eik") || visibleFields.has("recipient_mol")) && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {visibleFields.has("recipient_eik") && (
                     <Input
                       label="ЕИК"
@@ -443,7 +443,7 @@ export default function ReviewPage() {
                 </div>
               )}
               {(visibleFields.has("recipient_city") || visibleFields.has("recipient_phone")) && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {visibleFields.has("recipient_city") && (
                     <Input
                       label="Град"
@@ -475,8 +475,8 @@ export default function ReviewPage() {
             <CardHeader>
               <CardTitle>Суми и плащане</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+            <CardContent className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {visibleFields.has("subtotal") && (
                   <Input
                     label="Данъчна основа"
@@ -537,19 +537,27 @@ export default function ReviewPage() {
                   Няма артикули. Кликнете „Добави артикул", за да добавите.
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {formData.line_items.map((item, index) => (
-                    <div key={index} className="flex gap-3 items-start p-3 rounded-lg bg-secondary">
-                      <div className="flex-1 space-y-3">
-                        <div className="flex gap-2">
-                          <div className="w-28 shrink-0">
+                    <div key={index} className="relative p-3 rounded-lg bg-secondary">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeLineItem(index)}
+                        className="absolute top-2 right-2 text-destructive hover:text-destructive p-1 h-auto"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <div className="space-y-3 pr-8">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          <div className="col-span-1">
                             <Input
                               label="Код"
                               value={item.product_code}
                               onChange={(e) => handleLineItemChange(index, "product_code", e.target.value)}
                             />
                           </div>
-                          <div className="flex-1">
+                          <div className="col-span-2 sm:col-span-3">
                             <Input
                               label="Стока"
                               value={item.description}
@@ -557,7 +565,7 @@ export default function ReviewPage() {
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           <Input
                             label="Мярка"
                             value={item.unit}
@@ -585,14 +593,6 @@ export default function ReviewPage() {
                           />
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLineItem(index)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
                 </div>
@@ -620,11 +620,11 @@ export default function ReviewPage() {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => router.push("/dashboard")}>
+          <div className="flex flex-col-reverse sm:flex-row gap-3">
+            <Button variant="outline" onClick={() => router.push("/dashboard")} className="w-full sm:w-auto">
               Отказ
             </Button>
-            <Button onClick={handleConfirm} disabled={saving} className="flex-1">
+            <Button onClick={handleConfirm} disabled={saving} className="w-full sm:flex-1">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

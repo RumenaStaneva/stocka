@@ -92,14 +92,14 @@ export default function ExtractPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Извличане на данни от фактура</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Извличане на данни от фактура</h1>
+        <p className="text-muted-foreground text-sm sm:text-base mt-1">
           Ще анализираме и извлечем цялата релевантна информация
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Invoice Preview */}
         <Card>
           <CardHeader>

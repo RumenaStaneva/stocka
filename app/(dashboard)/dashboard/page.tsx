@@ -197,17 +197,17 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Табло</h1>
-          <p className="text-muted-foreground mt-1">
-            Управлявайте фактурите и извлечените данни
+          <h1 className="text-xl sm:text-2xl font-bold">Табло</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1">
+            Управлявайте фактурите и извлечените ��анни
           </p>
         </div>
-        <Link href="/upload">
-          <Button>
+        <Link href="/upload" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Upload className="h-4 w-4 mr-2" />
             Качи фактура
           </Button>
@@ -215,8 +215,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Търси фактури..."
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           {["pending", "reviewed", "confirmed"].map((status) => (
             <Button
               key={status}
@@ -234,6 +234,7 @@ export default function DashboardPage() {
               onClick={() =>
                 setStatusFilter(statusFilter === status ? null : status)
               }
+              className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
             >
               {getStatusLabel(status)}
             </Button>
@@ -283,7 +284,7 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => toggleVendor(group.vendor)}
-                      className="w-full flex items-center gap-3 p-4 hover:bg-secondary/50 transition-colors text-left"
+                      className="w-full flex items-center gap-2 sm:gap-3 p-3 sm:p-4 hover:bg-secondary/50 transition-colors text-left"
                     >
                       {vendorOpen ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -291,19 +292,22 @@ export default function DashboardPage() {
                         <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       )}
                       {vendorOpen ? (
-                        <FolderOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                        <FolderOpen className="h-5 w-5 text-primary flex-shrink-0 hidden sm:block" />
                       ) : (
-                        <Folder className="h-5 w-5 text-primary flex-shrink-0" />
+                        <Folder className="h-5 w-5 text-primary flex-shrink-0 hidden sm:block" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                        <div className="font-medium truncate text-sm sm:text-base">
                           {group.vendor}
                         </div>
+                        <div className="text-xs text-muted-foreground sm:hidden">
+                          {group.invoices.length} фактури
+                        </div>
                       </div>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground hidden sm:block">
                         {group.invoices.length} фактури
                       </span>
-                      <span className="text-sm font-medium w-28 text-right">
+                      <span className="text-xs sm:text-sm font-medium sm:w-28 text-right">
                         {formatCurrency(group.total, group.currency)}
                       </span>
                     </button>
@@ -319,7 +323,7 @@ export default function DashboardPage() {
                               <button
                                 type="button"
                                 onClick={() => toggleRecipient(recipientKey)}
-                                className="w-full flex items-center gap-3 py-2 pl-10 pr-4 hover:bg-secondary/50 transition-colors text-left"
+                                className="w-full flex items-center gap-2 sm:gap-3 py-2 pl-6 sm:pl-10 pr-3 sm:pr-4 hover:bg-secondary/50 transition-colors text-left"
                               >
                                 {recipientOpen ? (
                                   <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -327,17 +331,17 @@ export default function DashboardPage() {
                                   <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 )}
                                 {recipientOpen ? (
-                                  <FolderOpen className="h-4 w-4 text-primary/70 flex-shrink-0" />
+                                  <FolderOpen className="h-4 w-4 text-primary/70 flex-shrink-0 hidden sm:block" />
                                 ) : (
-                                  <Folder className="h-4 w-4 text-primary/70 flex-shrink-0" />
+                                  <Folder className="h-4 w-4 text-primary/70 flex-shrink-0 hidden sm:block" />
                                 )}
-                                <span className="text-sm font-medium flex-1 truncate">
+                                <span className="text-xs sm:text-sm font-medium flex-1 truncate">
                                   {recipient.recipient}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   {recipient.invoices.length}
                                 </span>
-                                <span className="text-xs font-medium w-28 text-right">
+                                <span className="text-xs font-medium sm:w-28 text-right">
                                   {formatCurrency(recipient.total, recipient.currency)}
                                 </span>
                               </button>
@@ -351,21 +355,21 @@ export default function DashboardPage() {
                                       <button
                                         type="button"
                                         onClick={() => toggleMonth(monthKey)}
-                                        className="w-full flex items-center gap-3 py-2 pl-16 pr-4 hover:bg-secondary/50 transition-colors text-left"
+                                        className="w-full flex items-center gap-2 sm:gap-3 py-2 pl-8 sm:pl-16 pr-3 sm:pr-4 hover:bg-secondary/50 transition-colors text-left"
                                       >
                                         {monthOpen ? (
                                           <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                         ) : (
                                           <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                         )}
-                                        <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                        <span className="text-sm font-medium flex-1">
+                                        <Folder className="h-4 w-4 text-muted-foreground flex-shrink-0 hidden sm:block" />
+                                        <span className="text-xs sm:text-sm font-medium flex-1">
                                           {month.label}
                                         </span>
                                         <span className="text-xs text-muted-foreground">
                                           {month.invoices.length}
                                         </span>
-                                        <span className="text-xs font-medium w-28 text-right">
+                                        <span className="text-xs font-medium sm:w-28 text-right">
                                           {formatCurrency(month.total, recipient.currency)}
                                         </span>
                                       </button>
@@ -376,21 +380,26 @@ export default function DashboardPage() {
                                             <Link
                                               key={invoice.id}
                                               href={`/invoices/${invoice.id}`}
-                                              className="flex items-center gap-3 py-3 pl-24 pr-4 hover:bg-secondary/70 transition-colors border-t border-border/50"
+                                              className="flex items-center gap-2 sm:gap-3 py-3 pl-10 sm:pl-24 pr-3 sm:pr-4 hover:bg-secondary/70 transition-colors border-t border-border/50"
                                             >
-                                              <div className="flex items-center gap-2 w-36">
+                                              <div className="flex items-center gap-1 sm:gap-2 sm:w-36">
                                                 {getStatusIcon(invoice.status)}
-                                                <span className="text-xs text-muted-foreground">
+                                                <span className="text-xs text-muted-foreground hidden sm:inline">
                                                   {getStatusLabel(invoice.status)}
                                                 </span>
                                               </div>
-                                              <span className="text-sm font-mono flex-1 truncate">
-                                                {invoice.invoice_number || "-"}
-                                              </span>
-                                              <span className="text-xs text-muted-foreground w-24">
+                                              <div className="flex-1 min-w-0">
+                                                <span className="text-xs sm:text-sm font-mono block truncate">
+                                                  {invoice.invoice_number || "-"}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground sm:hidden">
+                                                  {formatDate(invoice.invoice_date)}
+                                                </span>
+                                              </div>
+                                              <span className="text-xs text-muted-foreground w-24 hidden sm:block">
                                                 {formatDate(invoice.invoice_date)}
                                               </span>
-                                              <span className="text-sm font-medium w-28 text-right">
+                                              <span className="text-xs sm:text-sm font-medium sm:w-28 text-right">
                                                 {formatCurrency(
                                                   invoice.total_amount,
                                                   invoice.currency

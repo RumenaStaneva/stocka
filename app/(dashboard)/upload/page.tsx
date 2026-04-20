@@ -104,9 +104,9 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Качи фактура</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Качи фактура</h1>
+        <p className="text-muted-foreground text-sm sm:text-base mt-1">
           Качете изображение на фактура за извличане на данни с AI
         </p>
       </div>
@@ -120,35 +120,57 @@ export default function UploadPage() {
         </CardHeader>
         <CardContent>
           {!file ? (
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground"
-              }`}
-            >
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                onChange={handleInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center gap-4">
-                <div className="p-4 rounded-full bg-secondary">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="font-medium">Пуснете фактурата тук</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    или кликнете за разглеждане на файлове
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <label className="cursor-pointer">
+            <div className="space-y-4">
+              {/* Camera Button - Prominent on Mobile */}
+              <label className="flex items-center justify-center gap-3 p-6 rounded-xl bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors sm:hidden">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleInputChange}
+                  className="hidden"
+                />
+                <Camera className="h-8 w-8" />
+                <span className="text-lg font-semibold">Направи снимка</span>
+              </label>
+
+              {/* Divider on Mobile */}
+              <div className="flex items-center gap-3 sm:hidden">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground uppercase">или</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Drop Zone */}
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
+                  dragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={handleInputChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-4 rounded-full bg-secondary">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Пуснете фактурата тук</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      или кликнете за разглеждане на файлове
+                    </p>
+                  </div>
+                  {/* Camera button visible on desktop */}
+                  <label className="cursor-pointer hidden sm:block">
                     <input
                       type="file"
                       accept="image/*"
@@ -204,11 +226,11 @@ export default function UploadPage() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={clearFile} disabled={uploading}>
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <Button variant="outline" onClick={clearFile} disabled={uploading} className="w-full sm:w-auto">
                   Отказ
                 </Button>
-                <Button onClick={handleUpload} disabled={uploading} className="flex-1">
+                <Button onClick={handleUpload} disabled={uploading} className="w-full sm:flex-1">
                   {uploading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
