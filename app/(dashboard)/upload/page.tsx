@@ -3,9 +3,10 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { checkImageQuality, type QualityResult } from "@/lib/image-quality";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Camera, X, FileImage, Loader2 } from "lucide-react";
+import { Upload, Camera, X, FileImage, Loader2, AlertTriangle, Sun, Move, ZoomIn, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
 export default function UploadPage() {
@@ -13,10 +14,12 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [qualityResult, setQualityResult] = useState<QualityResult | null>(null);
 
-  const handleFile = useCallback((selectedFile: File) => {
+  const handleFile = useCallback(async (selectedFile: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowedTypes.includes(selectedFile.type)) {
       setError("Невалиден тип файл. Моля, качете JPEG, PNG, WebP или PDF.");
@@ -30,11 +33,24 @@ export default function UploadPage() {
 
     setFile(selectedFile);
     setError("");
+    setQualityResult(null);
 
     if (selectedFile.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target?.result as string);
       reader.readAsDataURL(selectedFile);
+
+      // Run quality check for images
+      setAnalyzing(true);
+      try {
+        const result = await checkImageQuality(selectedFile);
+        setQualityResult(result);
+      } catch {
+        // If quality check fails, don't block the user
+        setQualityResult(null);
+      } finally {
+        setAnalyzing(false);
+      }
     } else {
       setPreview(null);
     }
@@ -76,6 +92,7 @@ export default function UploadPage() {
     setFile(null);
     setPreview(null);
     setError("");
+    setQualityResult(null);
   };
 
   const handleUpload = async () => {
@@ -87,7 +104,7 @@ export default function UploadPage() {
     try {
       // Upload file to Blob storage
       const uploadResult = await api.uploadFile(file);
-      
+
       // Create invoice record
       const invoiceResult = await api.createInvoice({
         image_url: uploadResult.data.url,
@@ -102,6 +119,8 @@ export default function UploadPage() {
     }
   };
 
+  const hasQualityIssues = qualityResult && !qualityResult.passed;
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-4 sm:mb-6">
@@ -110,6 +129,29 @@ export default function UploadPage() {
           Качете изображение на фактура за извличане на данни с AI
         </p>
       </div>
+
+      {/* Photo Tips */}
+      {!file && (
+        <Card className="mb-4 border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/30">
+          <CardContent className="pt-4 pb-3">
+            <p className="text-sm font-medium mb-2 text-blue-900 dark:text-blue-100">Съвети за добра снимка:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="flex items-start gap-2 text-xs text-blue-800 dark:text-blue-200">
+                <Sun className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Осигурете добро осветление, без сенки върху документа</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-blue-800 dark:text-blue-200">
+                <Move className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Дръжте устройството неподвижно, за да избегнете размазване</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-blue-800 dark:text-blue-200">
+                <ZoomIn className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Снимайте отблизо, целият документ да се вижда ясно</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -222,15 +264,54 @@ export default function UploadPage() {
                 </div>
               )}
 
+              {/* Quality Analysis */}
+              {analyzing && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Проверка на качеството на снимката...</span>
+                </div>
+              )}
+
+              {qualityResult && qualityResult.passed && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 text-sm text-green-800 dark:text-green-200 border border-green-200 dark:border-green-900">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>Качеството на снимката е добро.</span>
+                </div>
+              )}
+
+              {hasQualityIssues && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30 p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>Открити проблеми с качеството:</span>
+                  </div>
+                  <ul className="space-y-1 ml-6">
+                    {qualityResult.issues.map((issue) => (
+                      <li key={issue.type} className="text-sm text-amber-700 dark:text-amber-300 list-disc">
+                        {issue.message}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 ml-6">
+                    Препоръчваме да направите нова снимка за по-точно извличане на данни.
+                  </p>
+                </div>
+              )}
+
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
               <div className="flex flex-col-reverse sm:flex-row gap-3">
                 <Button variant="outline" onClick={clearFile} disabled={uploading} className="w-full sm:w-auto">
-                  Отказ
+                  {hasQualityIssues ? "Направи нова снимка" : "Отказ"}
                 </Button>
-                <Button onClick={handleUpload} disabled={uploading} className="w-full sm:flex-1">
+                <Button
+                  onClick={handleUpload}
+                  disabled={uploading || analyzing}
+                  className="w-full sm:flex-1"
+                  variant={hasQualityIssues ? "outline" : "default"}
+                >
                   {uploading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -239,7 +320,7 @@ export default function UploadPage() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Качи и извлечи
+                      {hasQualityIssues ? "Качи въпреки това" : "Качи и извлечи"}
                     </>
                   )}
                 </Button>
