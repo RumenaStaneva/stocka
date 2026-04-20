@@ -203,7 +203,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Табло</h1>
           <p className="text-muted-foreground text-sm sm:text-base mt-1">
-            Управлявайте фактурите и извлечените ��анни
+            Управлявайте фактурите и извлечените данни
           </p>
         </div>
         <Link href="/upload" className="w-full sm:w-auto">

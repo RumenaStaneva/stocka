@@ -65,7 +65,7 @@ export function Sidebar() {
           className="p-2 rounded-md hover:bg-secondary transition-colors"
           aria-label={isOpen ? "Затвори менюто" : "Отвори менюто"}
         >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Menu className="h-5 w-5" />
         </button>
       </header>
 
@@ -80,13 +80,14 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card transition-transform duration-300 ease-in-out lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 z-50 h-screen w-64 border-border bg-card transition-transform duration-300 ease-in-out",
+          "right-0 border-l lg:left-0 lg:right-auto lg:border-l-0 lg:border-r lg:translate-x-0",
+          isOpen ? "translate-x-0" : "translate-x-full lg:-translate-x-0"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col max-h-screen">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between border-b border-border px-6">
+          <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border px-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-md bg-primary/10">
                 <FileText className="h-5 w-5 text-primary" />
@@ -103,7 +104,7 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
+          <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -125,9 +126,9 @@ export function Sidebar() {
           </nav>
 
           {/* User section */}
-          <div className="border-t border-border p-4">
+          <div className="border-t border-border p-4 flex-shrink-0">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-medium flex-shrink-0">
                 {user?.name?.charAt(0).toUpperCase() || "U"}
               </div>
               <div className="flex-1 min-w-0">
