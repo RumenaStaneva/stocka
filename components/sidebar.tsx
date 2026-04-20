@@ -54,12 +54,6 @@ export function Sidebar() {
     <>
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-md bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" />
-          </div>
-          <span className="text-lg font-bold">Stocka</span>
-        </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-md hover:bg-secondary transition-colors"
@@ -67,6 +61,13 @@ export function Sidebar() {
         >
           <Menu className="h-5 w-5" />
         </button>
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-md bg-primary/10">
+            <FileText className="h-5 w-5 text-primary" />
+          </div>
+          <span className="text-lg font-bold">Stocka</span>
+        </div>
+        <div className="w-9" /> {/* Spacer for centering logo */}
       </header>
 
       {/* Overlay */}
@@ -80,9 +81,8 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 z-50 h-screen w-64 border-border bg-card transition-transform duration-300 ease-in-out",
-          "right-0 border-l lg:left-0 lg:right-auto lg:border-l-0 lg:border-r lg:translate-x-0",
-          isOpen ? "translate-x-0" : "translate-x-full lg:-translate-x-0"
+          "fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card transition-transform duration-300 ease-in-out lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col max-h-screen">
