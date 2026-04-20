@@ -263,7 +263,7 @@ export default function DashboardPage() {
               </p>
               {!statusFilter || statusFilter === "confirmed" && (
                 <>
-                  <p className="text-muted-foreground mt-1">
+                  <p className="text-muted-foreground mt-1 lg:px-10 text-center">
                     Качете първата си фактура, за да започнете
                   </p>
                   <Link href="/upload">

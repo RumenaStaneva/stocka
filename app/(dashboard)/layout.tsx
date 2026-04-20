@@ -34,7 +34,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Sidebar />
-      <main className="pt-14 lg:pt-0 lg:ml-64 p-4 lg:p-6 min-h-screen">{children}</main>
+      <main className="pt-20 lg:pt-0 lg:ml-64 p-4 lg:p-6 min-h-screen">{children}</main>
     </div>
   );
 }
