@@ -54,19 +54,20 @@ export function Sidebar() {
     <>
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-md hover:bg-secondary transition-colors"
+          aria-label={isOpen ? "Затвори менюто" : "Отвори менюто"}
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-md bg-primary/10">
             <FileText className="h-5 w-5 text-primary" />
           </div>
           <span className="text-lg font-bold">Stocka</span>
         </div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-md hover:bg-secondary transition-colors"
-          aria-label={isOpen ? "Затвори менюто" : "Отвори менюто"}
-        >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="w-9" /> {/* Spacer for centering logo */}
       </header>
 
       {/* Overlay */}
@@ -84,9 +85,9 @@ export function Sidebar() {
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col max-h-screen">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between border-b border-border px-6">
+          <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border px-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-md bg-primary/10">
                 <FileText className="h-5 w-5 text-primary" />
@@ -103,7 +104,7 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
+          <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -125,9 +126,9 @@ export function Sidebar() {
           </nav>
 
           {/* User section */}
-          <div className="border-t border-border p-4">
+          <div className="border-t border-border p-4 flex-shrink-0">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-medium flex-shrink-0">
                 {user?.name?.charAt(0).toUpperCase() || "U"}
               </div>
               <div className="flex-1 min-w-0">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api, InvoiceDetail } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   Loader2,
   ArrowLeft,
@@ -28,6 +29,7 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -46,8 +48,6 @@ export default function InvoiceDetailPage() {
   }, [invoiceId]);
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this invoice?")) return;
-
     setDeleting(true);
     try {
       await api.deleteInvoice(invoiceId);
@@ -55,6 +55,7 @@ export default function InvoiceDetailPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete");
       setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -121,6 +122,19 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Изтриване на фактура"
+        description="Сигурни ли сте, че искате да изтриете тази фактура? Това действие е необратимо."
+        confirmText="Изтрий"
+        cancelText="Отказ"
+        variant="danger"
+        loading={deleting}
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -152,18 +166,11 @@ export default function InvoiceDetailPage() {
           </Link>
           <Button
             variant="destructive"
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={() => setShowDeleteModal(true)}
             className="flex-1 sm:flex-none"
           >
-            {deleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Изтрий</span>
-              </>
-            )}
+            <Trash2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Изтрий</span>
           </Button>
         </div>
       </div>
