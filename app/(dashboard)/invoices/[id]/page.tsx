@@ -122,52 +122,53 @@ export default function InvoiceDetailPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3">
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Назад</span>
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold truncate">
               {invoice.document_type === "order" ? "Поръчка" : "Фактура"}{" "}
               {invoice.invoice_number || "#" + invoice.id.slice(0, 8)}
             </h1>
             <div className="flex items-center gap-2 mt-1">
               {getStatusIcon(invoice.status)}
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground text-sm sm:text-base">
                 {getStatusLabel(invoice.status)}
               </span>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href={`/invoices/${invoice.id}/review`}>
-            <Button variant="outline">
-              <Edit2 className="h-4 w-4 mr-2" />
-              Редактирай
+          <Link href={`/invoices/${invoice.id}/review`} className="flex-1 sm:flex-none">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Edit2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Редактирай</span>
             </Button>
           </Link>
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={deleting}
+            className="flex-1 sm:flex-none"
           >
             {deleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Изтрий
+                <Trash2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Изтрий</span>
               </>
             )}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Invoice Image */}
         <Card>
           <CardHeader>
@@ -185,7 +186,7 @@ export default function InvoiceDetailPage() {
         </Card>
 
         {/* Invoice Details */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Vendor Info */}
           <Card>
             <CardHeader>

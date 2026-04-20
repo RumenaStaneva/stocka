@@ -104,9 +104,9 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Качи фактура</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Качи фактура</h1>
+        <p className="text-muted-foreground text-sm sm:text-base mt-1">
           Качете изображение на фактура за извличане на данни с AI
         </p>
       </div>
@@ -204,11 +204,11 @@ export default function UploadPage() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={clearFile} disabled={uploading}>
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <Button variant="outline" onClick={clearFile} disabled={uploading} className="w-full sm:w-auto">
                   Отказ
                 </Button>
-                <Button onClick={handleUpload} disabled={uploading} className="flex-1">
+                <Button onClick={handleUpload} disabled={uploading} className="w-full sm:flex-1">
                   {uploading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
