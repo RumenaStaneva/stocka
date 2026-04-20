@@ -81,11 +81,11 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-card transition-transform duration-300 ease-in-out lg:translate-x-0",
+          "fixed left-0 top-0 z-50 h-dvh w-64 border-r border-border bg-card transition-transform duration-300 ease-in-out lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col max-h-screen">
+        <div className="flex h-full flex-col max-h-dvh">
           {/* Logo */}
           <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border px-4">
             <div className="flex items-center gap-2">
