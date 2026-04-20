@@ -4,24 +4,26 @@ export interface QualityResult {
   scores: {
     blur: number;
     brightness: number;
+    contrast: number;
     width: number;
     height: number;
   };
 }
 
 export interface QualityIssue {
-  type: "blurry" | "too_dark" | "too_bright" | "low_resolution";
+  type: "blurry" | "too_dark" | "too_bright" | "low_resolution" | "low_contrast";
   message: string;
 }
 
-const BLUR_THRESHOLD = 15;
-const MIN_BRIGHTNESS = 40;
-const MAX_BRIGHTNESS = 240;
+const BLUR_THRESHOLD = 50;
+const MIN_BRIGHTNESS = 60;
+const MAX_BRIGHTNESS = 230;
+const MIN_CONTRAST = 35;
 const MIN_RESOLUTION = 500;
 
 /**
- * Analyze image quality by checking blur, brightness, and resolution.
- * Uses a Laplacian-based edge detection for blur and average luminance for brightness.
+ * Analyze image quality by checking blur, brightness, contrast, and resolution.
+ * Uses Laplacian variance for blur and luminance statistics for brightness/contrast.
  */
 export async function checkImageQuality(file: File): Promise<QualityResult> {
   const bitmap = await createImageBitmap(file);
@@ -40,7 +42,7 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
   const imageData = ctx.getImageData(0, 0, sw, sh);
   const { data } = imageData;
 
-  // Convert to grayscale
+  // Convert to grayscale and compute brightness stats
   const gray = new Float32Array(sw * sh);
   let brightnessSum = 0;
   for (let i = 0; i < gray.length; i++) {
@@ -54,12 +56,23 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
 
   const avgBrightness = brightnessSum / gray.length;
 
-  // Laplacian variance for blur detection
-  // Higher variance = sharper image, lower = blurrier
+  // Standard deviation of brightness = contrast measure
+  let varianceSum = 0;
+  for (let i = 0; i < gray.length; i++) {
+    const diff = gray[i] - avgBrightness;
+    varianceSum += diff * diff;
+  }
+  const contrast = Math.sqrt(varianceSum / gray.length);
+
+  // Laplacian variance for blur detection.
+  // We sample the center 60% of the image to avoid edges/borders
+  // which can artificially inflate the score.
+  const marginX = Math.round(sw * 0.2);
+  const marginY = Math.round(sh * 0.2);
   let laplacianSum = 0;
   let laplacianCount = 0;
-  for (let y = 1; y < sh - 1; y++) {
-    for (let x = 1; x < sw - 1; x++) {
+  for (let y = Math.max(1, marginY); y < sh - Math.max(1, marginY); y++) {
+    for (let x = Math.max(1, marginX); x < sw - Math.max(1, marginX); x++) {
       const idx = y * sw + x;
       const lap =
         gray[idx - sw] +
@@ -71,14 +84,14 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
       laplacianCount++;
     }
   }
-  const blurScore = Math.sqrt(laplacianSum / laplacianCount);
+  const blurScore = laplacianCount > 0 ? Math.sqrt(laplacianSum / laplacianCount) : 0;
 
   const issues: QualityIssue[] = [];
 
   if (blurScore < BLUR_THRESHOLD) {
     issues.push({
       type: "blurry",
-      message: "Снимката изглежда размазана. Опитайте да държите устройството неподвижно.",
+      message: "Снимката изглежда размазана. Дръжте устройството неподвижно и фокусирайте.",
     });
   }
 
@@ -96,6 +109,13 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
     });
   }
 
+  if (contrast < MIN_CONTRAST) {
+    issues.push({
+      type: "low_contrast",
+      message: "Снимката е с нисък контраст. Текстът трябва да се откроява ясно от фона.",
+    });
+  }
+
   if (width < MIN_RESOLUTION && height < MIN_RESOLUTION) {
     issues.push({
       type: "low_resolution",
@@ -109,6 +129,7 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
     scores: {
       blur: blurScore,
       brightness: avgBrightness,
+      contrast,
       width,
       height,
     },
