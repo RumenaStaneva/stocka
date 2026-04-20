@@ -120,35 +120,57 @@ export default function UploadPage() {
         </CardHeader>
         <CardContent>
           {!file ? (
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground"
-              }`}
-            >
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                onChange={handleInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center gap-4">
-                <div className="p-4 rounded-full bg-secondary">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="font-medium">Пуснете фактурата тук</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    или кликнете за разглеждане на файлове
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <label className="cursor-pointer">
+            <div className="space-y-4">
+              {/* Camera Button - Prominent on Mobile */}
+              <label className="flex items-center justify-center gap-3 p-6 rounded-xl bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors sm:hidden">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleInputChange}
+                  className="hidden"
+                />
+                <Camera className="h-8 w-8" />
+                <span className="text-lg font-semibold">Направи снимка</span>
+              </label>
+
+              {/* Divider on Mobile */}
+              <div className="flex items-center gap-3 sm:hidden">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground uppercase">или</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Drop Zone */}
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
+                  dragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={handleInputChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-4 rounded-full bg-secondary">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Пуснете фактурата тук</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      или кликнете за разглеждане на файлове
+                    </p>
+                  </div>
+                  {/* Camera button visible on desktop */}
+                  <label className="cursor-pointer hidden sm:block">
                     <input
                       type="file"
                       accept="image/*"
