@@ -293,7 +293,7 @@ export default function UploadPage() {
                     ))}
                   </ul>
                   <p className="text-xs text-amber-600 dark:text-amber-400 ml-6">
-                    Препоръчваме да направите нова снимка за по-точно извличане на данни.
+                    Моля, направете нова снимка за по-точно извличане на данни.
                   </p>
                 </div>
               )}
@@ -306,24 +306,25 @@ export default function UploadPage() {
                 <Button variant="outline" onClick={clearFile} disabled={uploading} className="w-full sm:w-auto">
                   {hasQualityIssues ? "Направи нова снимка" : "Отказ"}
                 </Button>
-                <Button
-                  onClick={handleUpload}
-                  disabled={uploading || analyzing}
-                  className="w-full sm:flex-1"
-                  variant={hasQualityIssues ? "outline" : "default"}
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Качване...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {hasQualityIssues ? "Качи въпреки това" : "Качи и извлечи"}
-                    </>
-                  )}
-                </Button>
+                {!hasQualityIssues && (
+                  <Button
+                    onClick={handleUpload}
+                    disabled={uploading || analyzing}
+                    className="w-full sm:flex-1"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Качване...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Качи и извлечи
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           )}
