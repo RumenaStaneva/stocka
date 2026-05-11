@@ -350,12 +350,6 @@ export default function InvoiceDetailPage() {
                     <span className="text-sm">{invoice.payment_method}</span>
                   </div>
                 )}
-                {invoice.amount_in_words && (
-                  <div className="pt-2 border-t border-border">
-                    <p className="text-sm text-muted-foreground">Словом</p>
-                    <p className="text-sm italic">{invoice.amount_in_words}</p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -384,6 +378,11 @@ export default function InvoiceDetailPage() {
                             </span>
                           )}
                           {item.description || "Артикул"}
+                          {item.batch_number && (
+                            <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                              партида: {item.batch_number}
+                            </span>
+                          )}
                         </p>
                         {item.quantity && (
                           <p className="text-sm text-muted-foreground">

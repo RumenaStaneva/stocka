@@ -173,6 +173,8 @@ CREATE TABLE line_items (
   quantity DECIMAL(10, 3),
   unit_price DECIMAL(12, 2),
   total_price DECIMAL(12, 2),
+  batch_number VARCHAR(100),
+  is_crossed_out BOOLEAN NOT NULL DEFAULT false,
   sort_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

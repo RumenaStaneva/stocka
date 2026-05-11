@@ -268,6 +268,8 @@ export interface LineItem {
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
+  batch_number: string | null;
+  is_crossed_out: boolean;
 }
 
 export interface ExtractedLineItem {
@@ -277,6 +279,8 @@ export interface ExtractedLineItem {
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
+  batch_number: string | null;
+  is_crossed_out: boolean;
 }
 
 export interface ExtractedData {

@@ -27,7 +27,7 @@ export async function GET(
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
-              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price, 'batch_number', li.batch_number, 'is_crossed_out', li.is_crossed_out
             ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
             '[]'::json
           ) as line_items
@@ -49,7 +49,7 @@ export async function GET(
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
-              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price, 'batch_number', li.batch_number, 'is_crossed_out', li.is_crossed_out
             ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
             '[]'::json
           ) as line_items
@@ -72,7 +72,7 @@ export async function GET(
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
-              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price, 'batch_number', li.batch_number, 'is_crossed_out', li.is_crossed_out
             ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
             '[]'::json
           ) as line_items
@@ -176,7 +176,7 @@ export async function PUT(
         await sql`
           INSERT INTO line_items (
             invoice_id, product_code, description, unit,
-            quantity, unit_price, total_price, sort_order
+            quantity, unit_price, total_price, batch_number, is_crossed_out, sort_order
           )
           VALUES (
             ${id},
@@ -186,6 +186,8 @@ export async function PUT(
             ${item.quantity ?? null},
             ${item.unit_price ?? null},
             ${item.total_price ?? item.amount ?? null},
+            ${item.batch_number ?? null},
+            ${item.is_crossed_out ?? false},
             ${i}
           )
         `;
