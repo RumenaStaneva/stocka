@@ -23,17 +23,18 @@ export default function UploadPage() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [selectedShopId, setSelectedShopId] = useState<string>("");
 
-  const needsShopPicker = user?.role === "org_admin" || user?.role === "platform_admin";
+  const isShopManager = user?.role === "shop_manager";
 
-  // Load shops for org_admin/platform_admin
+  // Load shops — shop_manager gets auto-filled, admins get the full list
   useEffect(() => {
-    if (needsShopPicker) {
-      api.getShops().then((res) => {
-        setShops(res.data);
-        if (res.data.length === 1) setSelectedShopId(res.data[0].id);
-      }).catch(console.error);
+    if (isShopManager && user?.shopId) {
+      setSelectedShopId(user.shopId);
     }
-  }, [needsShopPicker]);
+    api.getShops().then((res) => {
+      setShops(res.data);
+      if (res.data.length === 1) setSelectedShopId(res.data[0].id);
+    }).catch(console.error);
+  }, [isShopManager, user?.shopId]);
 
   const handleFile = useCallback(async (selectedFile: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
@@ -114,7 +115,7 @@ export default function UploadPage() {
   const handleUpload = async () => {
     if (!file) return;
 
-    if (needsShopPicker && !selectedShopId) {
+    if (!selectedShopId) {
       setError("Моля, изберете магазин");
       return;
     }
@@ -320,21 +321,22 @@ export default function UploadPage() {
                 </div>
               )}
 
-              {/* Shop Picker for org_admin/platform_admin */}
-              {needsShopPicker && shops.length > 0 && (
+              {/* Shop Picker — mandatory for all users, locked for shop_manager */}
+              {(shops.length > 0 || isShopManager) && (
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
-                    За кой магазин е тази фактура?
+                    За кой магазин е тази фактура? <span className="text-destructive">*</span>
                   </label>
                   <select
                     value={selectedShopId}
                     onChange={(e) => setSelectedShopId(e.target.value)}
-                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    disabled={isShopManager}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="">Изберете магазин...</option>
                     {shops.map((shop) => (
                       <option key={shop.id} value={shop.id}>
-                        {shop.name}
+                        {shop.name.replace(/^.*-\s*/, "")}
                       </option>
                     ))}
                   </select>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { api, Invoice, ExtractedData } from "@/lib/api";
+import { api, imageUrl, Invoice, ExtractedData } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
@@ -12,7 +12,7 @@ export default function ExtractPage() {
   const params = useParams();
   const invoiceId = params.id as string;
 
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoice, setInvoice] = useState<(Invoice & { organization_name?: string | null }) | null>(null);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
@@ -50,9 +50,19 @@ export default function ExtractPage() {
       const result = await api.extractInvoice(invoice.image_url);
       setExtractedData(result.data);
 
+      // Override vendor/recipient names with DB values
+      // to avoid OCR extraction errors in business/shop names
+      const extractedData = { ...result.data };
+      if (invoice.shop_name) {
+        extractedData.vendor_name = invoice.shop_name;
+      }
+      if (invoice.organization_name) {
+        extractedData.recipient_name = invoice.organization_name;
+      }
+
       // Update invoice with extracted data
       await api.updateInvoice(invoiceId, {
-        ...result.data,
+        ...extractedData,
         status: "reviewed",
         line_items: result.data.line_items,
       });
@@ -109,7 +119,7 @@ export default function ExtractPage() {
             {invoice && invoice.image_url && (
               <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
                 <img
-                  src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
+                  src={imageUrl(invoice.image_url)}
                   alt="Invoice"
                   className="w-full h-auto"
                 />

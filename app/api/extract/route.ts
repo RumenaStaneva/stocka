@@ -45,18 +45,18 @@ Use exactly this structure (use null for missing fields):
   "tax_amount": 0.00,
   "total_amount": 0.00,
   "currency": "EUR | BGN | USD | ...",
-  "amount_in_words": "...",
   "payment_method": "...",
 
-  "notes": "...",
   "line_items": [
     {
       "product_code": "...",
       "description": "...",
+      "batch_number": "...",
       "unit": "...",
       "quantity": 0,
       "unit_price": 0.00,
-      "total_price": 0.00
+      "total_price": 0.00,
+      "is_crossed_out": false
     }
   ]
 }
@@ -67,7 +67,7 @@ Language (CRITICAL): Copy text EXACTLY as printed. If a word is in Cyrillic, out
 
 Dates: Bulgarian DD.MM.YYYY → output YYYY-MM-DD.
 
-Currency: Use the currency of the "Сума за плащане" / total row. ISO codes (BGN, EUR, USD). If "Словом" contains "евро" → EUR; "лев"/"лева" → BGN. Do not default to BGN.
+Currency: Use the currency of the "Сума за плащане" / total row. ISO codes (BGN, EUR, USD). Do not default to BGN.
 
 Document type: "Фактура" → invoice; "Поръчка" → order; default invoice.
 
@@ -77,8 +77,17 @@ Field mappings:
 - Фактура №/Поръчка №/Номер/No: → invoice_number
 - Дата / Дата на издаване → invoice_date; Дата на падеж / Срок за плащане → due_date
 - Данъчна основа → subtotal; Начислен ДДС / ДДС (amount row) → tax_amount; Сума за плащане / Общо / Всичко → total_amount
-- Словом → amount_in_words; Начин на плащане / Плащане → payment_method
+- Начин на плащане / Плащане → payment_method
 - Line items: Код → product_code; Стока/Наименование/Описание → description; Мярка → unit; Кол./К-во/Количество → quantity; Цена/Ед. цена → unit_price; Стойност/Общо → total_price
+
+Batch numbers (партиди): Some line items have a batch number (партида) handwritten nearby, usually in the product description area. These are typically 6-digit date codes like "020416", "310316", "080416" — each item may have a DIFFERENT batch number. Read each one individually and carefully — do not assume they are all the same. Some items may also have two numbers (e.g. a batch number and a date). If no batch number is visible for an item, use null.
+
+Crossed-out / cancelled items:
+A crossed-out item has a HORIZONTAL LINE drawn THROUGH the printed text of the row. The line goes across the text/numbers, partially obscuring them.
+NOT cross-outs: checkmarks (✓), ticks, small marks, or handwritten numbers (batch numbers) next to items. These are annotations, not cancellations.
+How to confirm: look at the bottom/margins for a handwritten corrected total lower than the printed total (e.g. original 208.93 with handwritten 181.45). If such a correction exists AND some rows have lines through them, those rows are crossed out.
+Set is_crossed_out to true for rows with lines through them. Default to false.
+Use the ORIGINAL printed total for total_amount — the app will recalculate.
 
 City vs address: vendor_city and vendor_address are separate (city only, address only). Same for recipient.
 
@@ -110,8 +119,8 @@ export async function POST(request: NextRequest) {
 
     const resized = await sharp(originalBuffer)
       .rotate()
-      .resize({ width: 1568, height: 1568, fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 85 })
+      .resize({ width: 2048, height: 2048, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 90 })
       .toBuffer();
 
     const base64Image = resized.toString("base64");
@@ -120,7 +129,7 @@ export async function POST(request: NextRequest) {
     console.log(`[extract] resized: ${originalBuffer.byteLength} → ${resized.byteLength} bytes`);
 
     const { text } = await generateText({
-      model: anthropic("claude-haiku-4-5-20251001"),
+      model: anthropic("claude-sonnet-4-20250514"),
       messages: [
         {
           role: "user",
@@ -155,10 +164,12 @@ export async function POST(request: NextRequest) {
       ? (raw.line_items as Record<string, unknown>[]).map((item) => ({
           product_code: str(item.product_code),
           description: str(item.description) ?? "",
+          batch_number: str(item.batch_number),
           unit: str(item.unit),
           quantity: num(item.quantity),
           unit_price: num(item.unit_price),
           total_price: num(item.total_price),
+          is_crossed_out: item.is_crossed_out === true,
         }))
       : [];
 
@@ -187,10 +198,9 @@ export async function POST(request: NextRequest) {
       tax_amount: num(raw.tax_amount),
       total_amount: num(raw.total_amount),
       currency: str(raw.currency) ?? "BGN",
-      amount_in_words: str(raw.amount_in_words),
       payment_method: str(raw.payment_method),
 
-      notes: str(raw.notes),
+      notes: null,
       line_items: lineItems,
     };
 

@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${user.shopId}::uuid AND i.status = ${status}
             AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
           ORDER BY i.created_at DESC`;
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${user.shopId}::uuid
             AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
           ORDER BY i.created_at DESC`;
@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${user.shopId}::uuid AND i.status = ${status}
           ORDER BY i.created_at DESC`;
       } else {
@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${user.shopId}::uuid
           ORDER BY i.created_at DESC`;
       }
@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE i.shop_id = ${filterShopId}::uuid
               AND s.organization_id = ${user.organizationId}::uuid
               AND i.status = ${status}
@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE i.shop_id = ${filterShopId}::uuid
               AND s.organization_id = ${user.organizationId}::uuid
               AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
@@ -106,8 +106,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE i.shop_id = ${filterShopId}::uuid
               AND s.organization_id = ${user.organizationId}::uuid
               AND i.status = ${status}
@@ -119,8 +119,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE i.shop_id = ${filterShopId}::uuid
               AND s.organization_id = ${user.organizationId}::uuid
             ORDER BY i.created_at DESC`;
@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE s.organization_id = ${user.organizationId}::uuid
               AND i.status = ${status}
               AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
@@ -146,8 +146,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE s.organization_id = ${user.organizationId}::uuid
               AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
             ORDER BY i.created_at DESC`;
@@ -158,8 +158,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE s.organization_id = ${user.organizationId}::uuid AND i.status = ${status}
             ORDER BY i.created_at DESC`;
         } else {
@@ -169,8 +169,8 @@ export async function GET(request: NextRequest) {
               to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
               i.subtotal, i.tax_amount, i.total_amount, i.currency,
               i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-              f.name as folder_name, s.name as shop_name
-            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+              f.name as folder_name, s.name as shop_name, o.name as organization_name
+            FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
             WHERE s.organization_id = ${user.organizationId}::uuid
             ORDER BY i.created_at DESC`;
         }
@@ -184,8 +184,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${filterShopId}::uuid AND i.status = ${status}
             AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
           ORDER BY i.created_at DESC`;
@@ -196,8 +196,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${filterShopId}::uuid
             AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
           ORDER BY i.created_at DESC`;
@@ -208,8 +208,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${filterShopId}::uuid AND i.status = ${status}
           ORDER BY i.created_at DESC`;
       } else if (hasShopFilter) {
@@ -219,8 +219,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.shop_id = ${filterShopId}::uuid
           ORDER BY i.created_at DESC`;
       } else if (hasSearch && hasStatus) {
@@ -230,8 +230,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.status = ${status}
             AND (i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'})
           ORDER BY i.created_at DESC`;
@@ -242,8 +242,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.invoice_number ILIKE ${'%' + search + '%'} OR i.vendor_name ILIKE ${'%' + search + '%'}
           ORDER BY i.created_at DESC`;
       } else if (hasStatus) {
@@ -253,8 +253,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           WHERE i.status = ${status}
           ORDER BY i.created_at DESC`;
       } else {
@@ -264,8 +264,8 @@ export async function GET(request: NextRequest) {
             to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
             i.subtotal, i.tax_amount, i.total_amount, i.currency,
             i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
-            f.name as folder_name, s.name as shop_name
-          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id
+            f.name as folder_name, s.name as shop_name, o.name as organization_name
+          FROM invoices i LEFT JOIN folders f ON i.folder_id = f.id LEFT JOIN shops s ON i.shop_id = s.id LEFT JOIN organizations o ON s.organization_id = o.id
           ORDER BY i.created_at DESC`;
       }
     }

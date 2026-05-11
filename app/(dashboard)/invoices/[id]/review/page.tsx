@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { api, InvoiceDetail } from "@/lib/api";
+import { api, imageUrl, InvoiceDetail } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Check, AlertCircle, Trash2, Plus } from "lucide-react";
+import { Loader2, Check, AlertCircle, Trash2, Plus, Strikethrough, TriangleAlertIcon } from "lucide-react";
 
 interface LineItemForm {
   product_code: string;
   description: string;
+  batch_number: string;
   unit: string;
   quantity: string;
   unit_price: string;
   total_price: string;
+  is_crossed_out: boolean;
 }
 
 interface FormData {
@@ -41,7 +43,6 @@ interface FormData {
   tax_amount: string;
   total_amount: string;
   currency: string;
-  amount_in_words: string;
   payment_method: string;
 
   notes: string;
@@ -80,7 +81,7 @@ export default function ReviewPage() {
     tax_amount: "",
     total_amount: "",
     currency: "BGN",
-    amount_in_words: "",
+
     payment_method: "",
     notes: "",
     line_items: [],
@@ -118,7 +119,7 @@ export default function ReviewPage() {
           subtotal: result.data.subtotal,
           tax_amount: result.data.tax_amount,
           payment_method: result.data.payment_method,
-          amount_in_words: result.data.amount_in_words,
+
         };
         for (const [key, value] of Object.entries(maybe)) {
           if (value !== null && value !== undefined && value !== "") visible.add(key);
@@ -146,16 +147,18 @@ export default function ReviewPage() {
           tax_amount: result.data.tax_amount?.toString() || "",
           total_amount: result.data.total_amount?.toString() || "",
           currency: result.data.currency || "BGN",
-          amount_in_words: result.data.amount_in_words || "",
+
           payment_method: result.data.payment_method || "",
           notes: result.data.notes || "",
           line_items: result.data.line_items?.map((item) => ({
             product_code: item.product_code || "",
             description: item.description || "",
+            batch_number: item.batch_number || "",
             unit: item.unit || "",
             quantity: item.quantity?.toString() || "",
             unit_price: item.unit_price?.toString() || "",
             total_price: item.total_price?.toString() || "",
+            is_crossed_out: item.is_crossed_out ?? false,
           })) || [],
         });
 
@@ -190,10 +193,12 @@ export default function ReviewPage() {
         {
           product_code: "",
           description: "",
+          batch_number: "",
           unit: "",
           quantity: "",
           unit_price: "",
           total_price: "",
+          is_crossed_out: false,
         },
       ],
     }));
@@ -205,6 +210,23 @@ export default function ReviewPage() {
       line_items: prev.line_items.filter((_, i) => i !== index),
     }));
   };
+
+  const toggleCrossedOut = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      line_items: prev.line_items.map((item, i) =>
+        i === index ? { ...item, is_crossed_out: !item.is_crossed_out } : item
+      ),
+    }));
+  };
+
+  const activeTotal = useMemo(() => {
+    return formData.line_items
+      .filter((item) => !item.is_crossed_out)
+      .reduce((sum, item) => sum + (parseFloat(item.total_price) || 0), 0);
+  }, [formData.line_items]);
+
+  const hasCrossedOut = formData.line_items.some((item) => item.is_crossed_out);
 
   const handleConfirm = async () => {
     setSaving(true);
@@ -230,20 +252,24 @@ export default function ReviewPage() {
         due_date: formData.due_date || null,
         subtotal: formData.subtotal ? parseFloat(formData.subtotal) : null,
         tax_amount: formData.tax_amount ? parseFloat(formData.tax_amount) : null,
-        total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null,
+        total_amount: hasCrossedOut ? activeTotal : (formData.total_amount ? parseFloat(formData.total_amount) : null),
         currency: formData.currency,
-        amount_in_words: formData.amount_in_words || null,
+
         payment_method: formData.payment_method || null,
         notes: formData.notes || null,
         status: "confirmed",
-        line_items: formData.line_items.map((item) => ({
-          product_code: item.product_code || null,
-          description: item.description || null,
-          unit: item.unit || null,
-          quantity: item.quantity ? parseFloat(item.quantity) : null,
-          unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
-          total_price: item.total_price ? parseFloat(item.total_price) : null,
-        })),
+        line_items: formData.line_items
+          .filter((item) => !item.is_crossed_out)
+          .map((item) => ({
+            product_code: item.product_code || null,
+            description: item.description || null,
+            unit: item.unit || null,
+            quantity: item.quantity ? parseFloat(item.quantity) : null,
+            unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
+            total_price: item.total_price ? parseFloat(item.total_price) : null,
+            batch_number: item.batch_number || null,
+            is_crossed_out: false,
+          })),
       });
 
       router.push("/dashboard");
@@ -294,7 +320,7 @@ export default function ReviewPage() {
             {invoice && (
               <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
                 <img
-                  src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
+                  src={imageUrl(invoice.image_url)}
                   alt="Invoice"
                   className="w-full h-auto"
                 />
@@ -495,13 +521,22 @@ export default function ReviewPage() {
                     onChange={(e) => handleChange("tax_amount", e.target.value)}
                   />
                 )}
-                <Input
-                  label="Сума за плащане"
-                  type="number"
-                  step="0.01"
-                  value={formData.total_amount}
-                  onChange={(e) => handleChange("total_amount", e.target.value)}
-                />
+                <div className="col-span-1 sm:col-span-3">
+                  <Input
+                    label="Сума за плащане"
+                    type="number"
+                    step="0.01"
+                    value={hasCrossedOut ? activeTotal.toFixed(2) : formData.total_amount}
+                    onChange={(e) => handleChange("total_amount", e.target.value)}
+                    disabled={hasCrossedOut}
+                  />
+                  {hasCrossedOut && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                      <TriangleAlertIcon className="h-4 w-4 inline mr-1" />
+                      Преизчислено след премахване на зачеркнатите артикули
+                    </p>
+                  )}
+                </div>
               </div>
               {visibleFields.has("payment_method") && (
                 <Input
@@ -509,14 +544,6 @@ export default function ReviewPage() {
                   placeholder="напр. Банков път, В брой"
                   value={formData.payment_method}
                   onChange={(e) => handleChange("payment_method", e.target.value)}
-                />
-              )}
-              {visibleFields.has("amount_in_words") && (
-                <Input
-                  label="Словом"
-                  placeholder="напр. Двеста деветдесет и седем евро"
-                  value={formData.amount_in_words}
-                  onChange={(e) => handleChange("amount_in_words", e.target.value)}
                 />
               )}
             </CardContent>
@@ -539,22 +566,49 @@ export default function ReviewPage() {
               ) : (
                 <div className="space-y-3 sm:space-y-4">
                   {formData.line_items.map((item, index) => (
-                    <div key={index} className="relative p-3 rounded-lg bg-secondary">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLineItem(index)}
-                        className="absolute top-2 right-2 text-destructive hover:text-destructive p-1 h-auto"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <div className="space-y-3 pr-8">
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    <div
+                      key={index}
+                      className={`relative p-3 rounded-lg transition-opacity ${item.is_crossed_out
+                        ? "bg-destructive/10 opacity-60 border border-destructive/30"
+                        : "bg-secondary"
+                        }`}
+                    >
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleCrossedOut(index)}
+                          className={`p-1 h-auto ${item.is_crossed_out
+                            ? "text-destructive hover:text-destructive"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          title={item.is_crossed_out ? "Възстанови артикул" : "Маркирай като зачеркнат"}
+                        >
+                          <Strikethrough className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLineItem(index)}
+                          className="text-destructive hover:text-destructive p-1 h-auto"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="space-y-3 pr-16">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                           <div className="col-span-1">
                             <Input
                               label="Код"
                               value={item.product_code}
                               onChange={(e) => handleLineItemChange(index, "product_code", e.target.value)}
+                            />
+                          </div>
+                          <div className="col-span-1 sm:col-span-2">
+                            <Input
+                              label="Партида"
+                              value={item.batch_number}
+                              onChange={(e) => handleLineItemChange(index, "batch_number", e.target.value)}
                             />
                           </div>
                           <div className="col-span-2 sm:col-span-3">

@@ -246,6 +246,8 @@ export interface Invoice {
   status: "pending" | "reviewed" | "confirmed";
   created_at: string;
   updated_at: string;
+  shop_name: string | null;
+  organization_name: string | null;
 }
 
 export interface InvoiceDetail extends Invoice {
@@ -266,6 +268,8 @@ export interface LineItem {
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
+  batch_number: string | null;
+  is_crossed_out: boolean;
 }
 
 export interface ExtractedLineItem {
@@ -275,6 +279,8 @@ export interface ExtractedLineItem {
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
+  batch_number: string | null;
+  is_crossed_out: boolean;
 }
 
 export interface ExtractedData {
@@ -354,3 +360,8 @@ export interface AdminUser {
 }
 
 export const api = new ApiClient();
+
+export function imageUrl(blobUrl: string): string {
+  const token = api.getToken() ?? "";
+  return `/api/images?url=${encodeURIComponent(blobUrl)}&token=${encodeURIComponent(token)}`;
+}
