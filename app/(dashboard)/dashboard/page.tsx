@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { api, Invoice } from "@/lib/api";
+import { api, Invoice, Shop } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import {
   ChevronDown,
   Folder,
   FolderOpen,
+  Store,
 } from "lucide-react";
 
 const MONTH_NAMES_BG = [
@@ -58,13 +60,18 @@ interface VendorGroup {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [shopFilter, setShopFilter] = useState<string | null>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
   const [expandedRecipients, setExpandedRecipients] = useState<Record<string, boolean>>({});
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
+
+  const showShopFilter = user?.role === "org_admin" || user?.role === "platform_admin";
 
   const toggleVendor = (vendor: string) =>
     setExpandedVendors((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
@@ -142,12 +149,20 @@ export default function DashboardPage() {
 
   const vendorGroups = groupInvoices(invoices);
 
+  // Load shops for the filter dropdown
+  useEffect(() => {
+    if (showShopFilter) {
+      api.getShops().then((res) => setShops(res.data)).catch(console.error);
+    }
+  }, [showShopFilter]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
         const invoicesResult = await api.getInvoices({
           ...(search && { search }),
           ...(statusFilter && { status: statusFilter }),
+          ...(shopFilter && { shop_id: shopFilter }),
         });
         setInvoices(invoicesResult.data);
       } catch (err) {
@@ -158,7 +173,7 @@ export default function DashboardPage() {
     };
 
     loadData();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, shopFilter]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -213,6 +228,33 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Shop Filter (for org_admin and platform_admin) */}
+      {showShopFilter && shops.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={shopFilter === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShopFilter(null)}
+            className="whitespace-nowrap text-xs sm:text-sm"
+          >
+            <Store className="h-3 w-3 mr-1" />
+            Всички магазини
+          </Button>
+          {shops.map((shop) => (
+            <Button
+              key={shop.id}
+              variant={shopFilter === shop.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShopFilter(shopFilter === shop.id ? null : shop.id)}
+              className="whitespace-nowrap text-xs sm:text-sm"
+            >
+              <Store className="h-3 w-3 mr-1" />
+              {shop.name.replace(/^.*-\s*/, "")}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">

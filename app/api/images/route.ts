@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
-  const url = request.nextUrl.searchParams.get("url");
-
-  if (!url) {
-    return NextResponse.json({ error: "URL parameter required" }, { status: 400 });
-  }
-
   try {
+    requireAuth(request);
+
+    const url = request.nextUrl.searchParams.get("url");
+
+    if (!url) {
+      return NextResponse.json({ error: "URL parameter required" }, { status: 400 });
+    }
+
     // Fetch the image from Vercel Blob
     const response = await fetch(url, {
       headers: {
@@ -30,6 +33,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[v0] Image proxy error:", error);
     return NextResponse.json({ error: "Failed to proxy image" }, { status: 500 });
   }

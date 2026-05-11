@@ -16,6 +16,10 @@ dist/
 .env.test.local
 .env.production.local
 
+# Seed data
+scripts/002-seed-data.sql
+scripts/generate-hash.js
+
 # Debug logs
 npm-debug.log*
 yarn-debug.log*

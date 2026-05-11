@@ -1,91 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { jwtVerify } from "jose";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 const sql = neon(process.env.DATABASE_URL!);
-
-async function getUserIdFromToken(request: NextRequest): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.substring(7);
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "stocka-secret-key-change-in-production");
-    const { payload } = await jwtVerify(token, secret);
-    return (payload.userId as string) || (payload.sub as string);
-  } catch (error) {
-    console.error("[v0] JWT verification error:", error);
-    return null;
-  }
-}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const user = requireAuth(request);
     const { id } = await params;
 
-    const invoices = await sql`
-      SELECT
-        i.id,
-        i.user_id,
-        i.folder_id,
-        i.document_type,
-        i.invoice_number,
-        i.vendor_name,
-        i.vendor_eik,
-        i.vendor_city,
-        i.vendor_address,
-        i.vendor_mol,
-        i.vendor_phone,
-        i.recipient_name,
-        i.recipient_eik,
-        i.recipient_city,
-        i.recipient_address,
-        i.recipient_mol,
-        i.recipient_phone,
-        to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date,
-        to_char(i.due_date, 'YYYY-MM-DD') as due_date,
-        i.subtotal,
-        i.tax_amount,
-        i.total_amount,
-        i.currency,
-        i.amount_in_words,
-        i.payment_method,
-        i.notes,
-        i.original_file_url as image_url,
-        i.status,
-        i.created_at,
-        i.updated_at,
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'id', li.id,
-                'product_code', li.product_code,
-                'description', li.description,
-                'unit', li.unit,
-                'quantity', li.quantity,
-                'unit_price', li.unit_price,
-                'total_price', li.total_price
-              ) ORDER BY li.sort_order, li.created_at
-            )
-            FROM line_items li
-            WHERE li.invoice_id = i.id
-          ),
-          '[]'::json
-        ) as line_items
-      FROM invoices i
-      WHERE i.id = ${id} AND i.user_id = ${userId}
-    `;
+    let invoices;
+
+    if (user.role === "shop_manager") {
+      invoices = await sql`
+        SELECT
+          i.id, i.user_id, i.folder_id, i.shop_id, i.document_type, i.invoice_number,
+          i.vendor_name, i.vendor_eik, i.vendor_city, i.vendor_address, i.vendor_mol, i.vendor_phone,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
+          to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
+          i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
+          i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', li.id, 'product_code', li.product_code, 'description', li.description,
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+            ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
+            '[]'::json
+          ) as line_items
+        FROM invoices i
+        WHERE i.id = ${id} AND i.shop_id = ${user.shopId}::uuid
+      `;
+    } else if (user.role === "org_admin") {
+      invoices = await sql`
+        SELECT
+          i.id, i.user_id, i.folder_id, i.shop_id, i.document_type, i.invoice_number,
+          i.vendor_name, i.vendor_eik, i.vendor_city, i.vendor_address, i.vendor_mol, i.vendor_phone,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
+          to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
+          i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
+          i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', li.id, 'product_code', li.product_code, 'description', li.description,
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+            ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
+            '[]'::json
+          ) as line_items
+        FROM invoices i
+        JOIN shops s ON i.shop_id = s.id
+        WHERE i.id = ${id} AND s.organization_id = ${user.organizationId}::uuid
+      `;
+    } else {
+      // platform_admin
+      invoices = await sql`
+        SELECT
+          i.id, i.user_id, i.folder_id, i.shop_id, i.document_type, i.invoice_number,
+          i.vendor_name, i.vendor_eik, i.vendor_city, i.vendor_address, i.vendor_mol, i.vendor_phone,
+          i.recipient_name, i.recipient_eik, i.recipient_city, i.recipient_address, i.recipient_mol, i.recipient_phone,
+          to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
+          i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
+          i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', li.id, 'product_code', li.product_code, 'description', li.description,
+              'unit', li.unit, 'quantity', li.quantity, 'unit_price', li.unit_price, 'total_price', li.total_price
+            ) ORDER BY li.sort_order, li.created_at) FROM line_items li WHERE li.invoice_id = i.id),
+            '[]'::json
+          ) as line_items
+        FROM invoices i
+        WHERE i.id = ${id}
+      `;
+    }
 
     if (invoices.length === 0) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
@@ -93,6 +81,9 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: invoices[0] });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Error fetching invoice:", error);
     return NextResponse.json({ error: "Failed to fetch invoice" }, { status: 500 });
   }
@@ -103,42 +94,35 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = requireAuth(request);
+    const { id } = await params;
+
+    // Verify access before updating
+    let accessCheck;
+    if (user.role === "shop_manager") {
+      accessCheck = await sql`SELECT id FROM invoices WHERE id = ${id} AND shop_id = ${user.shopId}::uuid`;
+    } else if (user.role === "org_admin") {
+      accessCheck = await sql`
+        SELECT i.id FROM invoices i JOIN shops s ON i.shop_id = s.id
+        WHERE i.id = ${id} AND s.organization_id = ${user.organizationId}::uuid
+      `;
+    } else {
+      accessCheck = await sql`SELECT id FROM invoices WHERE id = ${id}`;
     }
 
-    const { id } = await params;
+    if (accessCheck.length === 0) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const {
-      document_type,
-      invoice_number,
-      vendor_name,
-      vendor_eik,
-      vendor_city,
-      vendor_address,
-      vendor_mol,
-      vendor_phone,
-      recipient_name,
-      recipient_eik,
-      recipient_city,
-      recipient_address,
-      recipient_mol,
-      recipient_phone,
-      invoice_date,
-      due_date,
-      subtotal,
-      tax_amount,
-      total_amount,
-      currency,
-      amount_in_words,
-      payment_method,
-      notes,
-      status,
-      line_items,
+      document_type, invoice_number,
+      vendor_name, vendor_eik, vendor_city, vendor_address, vendor_mol, vendor_phone,
+      recipient_name, recipient_eik, recipient_city, recipient_address, recipient_mol, recipient_phone,
+      invoice_date, due_date, subtotal, tax_amount, total_amount, currency,
+      amount_in_words, payment_method, notes, status, line_items,
     } = body;
 
-    // Update the invoice
     const result = await sql`
       UPDATE invoices
       SET
@@ -167,7 +151,7 @@ export async function PUT(
         notes = COALESCE(${notes}, notes),
         status = COALESCE(${status}, status),
         updated_at = NOW()
-      WHERE id = ${id} AND user_id = ${userId}
+      WHERE id = ${id}
       RETURNING *
     `;
 
@@ -177,10 +161,8 @@ export async function PUT(
 
     // Update line items if provided
     if (line_items && Array.isArray(line_items)) {
-      // Delete existing line items
       await sql`DELETE FROM line_items WHERE invoice_id = ${id}`;
 
-      // Insert new line items
       for (let i = 0; i < line_items.length; i++) {
         const item = line_items[i];
         await sql`
@@ -204,6 +186,9 @@ export async function PUT(
 
     return NextResponse.json({ success: true, data: result[0] });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Error updating invoice:", error);
     return NextResponse.json({ error: "Failed to update invoice" }, { status: 500 });
   }
@@ -214,29 +199,34 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const user = requireAuth(request);
     const { id } = await params;
 
-    // Delete line items first (due to foreign key constraint)
-    await sql`DELETE FROM line_items WHERE invoice_id = ${id}`;
+    // Verify access before deleting
+    let accessCheck;
+    if (user.role === "shop_manager") {
+      accessCheck = await sql`SELECT id FROM invoices WHERE id = ${id} AND shop_id = ${user.shopId}::uuid`;
+    } else if (user.role === "org_admin") {
+      accessCheck = await sql`
+        SELECT i.id FROM invoices i JOIN shops s ON i.shop_id = s.id
+        WHERE i.id = ${id} AND s.organization_id = ${user.organizationId}::uuid
+      `;
+    } else {
+      accessCheck = await sql`SELECT id FROM invoices WHERE id = ${id}`;
+    }
 
-    // Delete the invoice
-    const result = await sql`
-      DELETE FROM invoices
-      WHERE id = ${id} AND user_id = ${userId}
-      RETURNING id
-    `;
-
-    if (result.length === 0) {
+    if (accessCheck.length === 0) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
+    await sql`DELETE FROM line_items WHERE invoice_id = ${id}`;
+    await sql`DELETE FROM invoices WHERE id = ${id}`;
+
     return NextResponse.json({ success: true, message: "Invoice deleted" });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Error deleting invoice:", error);
     return NextResponse.json({ error: "Failed to delete invoice" }, { status: 500 });
   }
