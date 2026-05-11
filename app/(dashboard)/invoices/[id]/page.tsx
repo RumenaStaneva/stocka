@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { api, InvoiceDetail } from "@/lib/api";
+import { api, imageUrl, InvoiceDetail } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -184,7 +184,7 @@ export default function InvoiceDetailPage() {
           <CardContent>
             <div className="relative rounded-lg overflow-hidden border border-border bg-secondary">
               <img
-                src={`/api/images?url=${encodeURIComponent(invoice.image_url)}`}
+                src={imageUrl(invoice.image_url)}
                 alt="Invoice"
                 className="w-full h-auto"
               />

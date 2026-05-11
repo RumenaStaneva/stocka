@@ -3,7 +3,15 @@ import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    requireAuth(request);
+    // Support token via query param for <img> tags that can't set headers
+    const tokenParam = request.nextUrl.searchParams.get("token");
+    if (tokenParam) {
+      const headers = new Headers(request.headers);
+      headers.set("authorization", `Bearer ${tokenParam}`);
+      requireAuth(new NextRequest(request.url, { headers }));
+    } else {
+      requireAuth(request);
+    }
 
     const url = request.nextUrl.searchParams.get("url");
 

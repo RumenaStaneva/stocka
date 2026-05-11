@@ -246,6 +246,8 @@ export interface Invoice {
   status: "pending" | "reviewed" | "confirmed";
   created_at: string;
   updated_at: string;
+  shop_name: string | null;
+  organization_name: string | null;
 }
 
 export interface InvoiceDetail extends Invoice {
@@ -354,3 +356,8 @@ export interface AdminUser {
 }
 
 export const api = new ApiClient();
+
+export function imageUrl(blobUrl: string): string {
+  const token = api.getToken() ?? "";
+  return `/api/images?url=${encodeURIComponent(blobUrl)}&token=${encodeURIComponent(token)}`;
+}

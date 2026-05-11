@@ -23,6 +23,7 @@ export async function GET(
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
           i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          s.name as shop_name, o.name as organization_name,
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
@@ -31,6 +32,8 @@ export async function GET(
             '[]'::json
           ) as line_items
         FROM invoices i
+        LEFT JOIN shops s ON i.shop_id = s.id
+        LEFT JOIN organizations o ON s.organization_id = o.id
         WHERE i.id = ${id} AND i.shop_id = ${user.shopId}::uuid
       `;
     } else if (user.role === "org_admin") {
@@ -42,6 +45,7 @@ export async function GET(
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
           i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          s.name as shop_name, o.name as organization_name,
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
@@ -51,6 +55,7 @@ export async function GET(
           ) as line_items
         FROM invoices i
         JOIN shops s ON i.shop_id = s.id
+        LEFT JOIN organizations o ON s.organization_id = o.id
         WHERE i.id = ${id} AND s.organization_id = ${user.organizationId}::uuid
       `;
     } else {
@@ -63,6 +68,7 @@ export async function GET(
           to_char(i.invoice_date, 'YYYY-MM-DD') as invoice_date, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
           i.subtotal, i.tax_amount, i.total_amount, i.currency, i.amount_in_words, i.payment_method,
           i.notes, i.original_file_url as image_url, i.status, i.created_at, i.updated_at,
+          s.name as shop_name, o.name as organization_name,
           COALESCE(
             (SELECT json_agg(json_build_object(
               'id', li.id, 'product_code', li.product_code, 'description', li.description,
@@ -71,6 +77,8 @@ export async function GET(
             '[]'::json
           ) as line_items
         FROM invoices i
+        LEFT JOIN shops s ON i.shop_id = s.id
+        LEFT JOIN organizations o ON s.organization_id = o.id
         WHERE i.id = ${id}
       `;
     }

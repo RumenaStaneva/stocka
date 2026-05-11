@@ -15,15 +15,19 @@ export interface QualityIssue {
   message: string;
 }
 
-const BLUR_THRESHOLD = 50;
-const MIN_BRIGHTNESS = 60;
-const MAX_BRIGHTNESS = 230;
-const MIN_CONTRAST = 35;
+const BLUR_THRESHOLD = 25;
+const MIN_BRIGHTNESS = 50;
+const MAX_BRIGHTNESS = 235;
+const MIN_CONTRAST = 20;
 const MIN_RESOLUTION = 500;
 
 /**
  * Analyze image quality by checking blur, brightness, contrast, and resolution.
- * Uses Laplacian variance for blur and luminance statistics for brightness/contrast.
+ *
+ * Blur detection uses Laplacian variance but only on pixels that have some
+ * local variation (edges/text), skipping uniform regions (blank paper).
+ * This prevents large white areas from dragging the score down on otherwise
+ * sharp document photos.
  */
 export async function checkImageQuality(file: File): Promise<QualityResult> {
   const bitmap = await createImageBitmap(file);
@@ -65,14 +69,13 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
   const contrast = Math.sqrt(varianceSum / gray.length);
 
   // Laplacian variance for blur detection.
-  // We sample the center 60% of the image to avoid edges/borders
-  // which can artificially inflate the score.
-  const marginX = Math.round(sw * 0.2);
-  const marginY = Math.round(sh * 0.2);
+  // Only count pixels where the local gradient is above a threshold,
+  // so blank/uniform regions (white paper) don't dilute the score.
+  const EDGE_MIN = 3; // minimum absolute Laplacian to count as "content"
   let laplacianSum = 0;
   let laplacianCount = 0;
-  for (let y = Math.max(1, marginY); y < sh - Math.max(1, marginY); y++) {
-    for (let x = Math.max(1, marginX); x < sw - Math.max(1, marginX); x++) {
+  for (let y = 1; y < sh - 1; y++) {
+    for (let x = 1; x < sw - 1; x++) {
       const idx = y * sw + x;
       const lap =
         gray[idx - sw] +
@@ -80,11 +83,26 @@ export async function checkImageQuality(file: File): Promise<QualityResult> {
         gray[idx - 1] +
         gray[idx + 1] -
         4 * gray[idx];
-      laplacianSum += lap * lap;
-      laplacianCount++;
+      const absLap = Math.abs(lap);
+      if (absLap > EDGE_MIN) {
+        laplacianSum += lap * lap;
+        laplacianCount++;
+      }
     }
   }
   const blurScore = laplacianCount > 0 ? Math.sqrt(laplacianSum / laplacianCount) : 0;
+
+  // Log scores in development for threshold tuning
+  if (process.env.NODE_ENV === "development") {
+    console.log("[image-quality]", {
+      blur: blurScore.toFixed(1),
+      brightness: avgBrightness.toFixed(1),
+      contrast: contrast.toFixed(1),
+      edgePixels: laplacianCount,
+      totalPixels: sw * sh,
+      size: `${width}x${height}`,
+    });
+  }
 
   const issues: QualityIssue[] = [];
 

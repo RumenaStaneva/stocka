@@ -334,7 +334,7 @@ export default function UploadPage() {
                     <option value="">Изберете магазин...</option>
                     {shops.map((shop) => (
                       <option key={shop.id} value={shop.id}>
-                        {shop.name}
+                        {shop.name.replace(/^.*-\s*/, "")}
                       </option>
                     ))}
                   </select>

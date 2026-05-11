@@ -43,20 +43,20 @@ interface MonthGroup {
   total: number;
 }
 
-interface RecipientGroup {
-  recipient: string;
+interface ShopGroup {
+  shop: string;
   invoices: Invoice[];
   total: number;
   currency: string;
   months: MonthGroup[];
 }
 
-interface VendorGroup {
-  vendor: string;
+interface OrgGroup {
+  org: string;
   invoices: Invoice[];
   total: number;
   currency: string;
-  recipients: RecipientGroup[];
+  shops: ShopGroup[];
 }
 
 export default function DashboardPage() {
@@ -67,16 +67,16 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [shopFilter, setShopFilter] = useState<string | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
-  const [expandedRecipients, setExpandedRecipients] = useState<Record<string, boolean>>({});
+  const [expandedOrgs, setExpandedOrgs] = useState<Record<string, boolean>>({});
+  const [expandedShops, setExpandedShops] = useState<Record<string, boolean>>({});
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
 
   const showShopFilter = user?.role === "org_admin" || user?.role === "platform_admin";
 
-  const toggleVendor = (vendor: string) =>
-    setExpandedVendors((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
-  const toggleRecipient = (key: string) =>
-    setExpandedRecipients((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleOrg = (org: string) =>
+    setExpandedOrgs((prev) => ({ ...prev, [org]: !prev[org] }));
+  const toggleShop = (key: string) =>
+    setExpandedShops((prev) => ({ ...prev, [key]: !prev[key] }));
   const toggleMonth = (key: string) =>
     setExpandedMonths((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -108,46 +108,46 @@ export default function DashboardPage() {
       .sort((a, b) => b.key.localeCompare(a.key));
   };
 
-  const groupInvoices = (items: Invoice[]): VendorGroup[] => {
-    const byVendor = new Map<string, Invoice[]>();
+  const groupInvoices = (items: Invoice[]): OrgGroup[] => {
+    const byOrg = new Map<string, Invoice[]>();
     for (const inv of items) {
-      const vendor = inv.vendor_name?.trim() || "Неизвестен доставчик";
-      if (!byVendor.has(vendor)) byVendor.set(vendor, []);
-      byVendor.get(vendor)!.push(inv);
+      const org = inv.organization_name?.trim() || inv.recipient_name?.trim() || "Неизвестна организация";
+      if (!byOrg.has(org)) byOrg.set(org, []);
+      byOrg.get(org)!.push(inv);
     }
 
-    const groups: VendorGroup[] = [];
-    for (const [vendor, vendorInvoices] of byVendor) {
-      const byRecipient = new Map<string, Invoice[]>();
-      for (const inv of vendorInvoices) {
-        const recipient = inv.recipient_name?.trim() || "Неизвестен получател";
-        if (!byRecipient.has(recipient)) byRecipient.set(recipient, []);
-        byRecipient.get(recipient)!.push(inv);
+    const groups: OrgGroup[] = [];
+    for (const [org, orgInvoices] of byOrg) {
+      const byShop = new Map<string, Invoice[]>();
+      for (const inv of orgInvoices) {
+        const shop = inv.shop_name?.trim() || inv.vendor_name?.trim() || "Неизвестен магазин";
+        if (!byShop.has(shop)) byShop.set(shop, []);
+        byShop.get(shop)!.push(inv);
       }
 
-      const recipients: RecipientGroup[] = Array.from(byRecipient.entries())
-        .map(([recipient, recipientInvoices]) => ({
-          recipient,
-          invoices: recipientInvoices,
-          total: recipientInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
-          currency: recipientInvoices.find((i) => i.currency)?.currency || "BGN",
-          months: buildMonths(recipientInvoices),
+      const shops: ShopGroup[] = Array.from(byShop.entries())
+        .map(([shop, shopInvoices]) => ({
+          shop,
+          invoices: shopInvoices,
+          total: shopInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
+          currency: shopInvoices.find((i) => i.currency)?.currency || "BGN",
+          months: buildMonths(shopInvoices),
         }))
-        .sort((a, b) => a.recipient.localeCompare(b.recipient, "bg"));
+        .sort((a, b) => a.shop.localeCompare(b.shop, "bg"));
 
       groups.push({
-        vendor,
-        invoices: vendorInvoices,
-        total: vendorInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
-        currency: vendorInvoices.find((i) => i.currency)?.currency || "BGN",
-        recipients,
+        org,
+        invoices: orgInvoices,
+        total: orgInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
+        currency: orgInvoices.find((i) => i.currency)?.currency || "BGN",
+        shops,
       });
     }
 
-    return groups.sort((a, b) => a.vendor.localeCompare(b.vendor, "bg"));
+    return groups.sort((a, b) => a.org.localeCompare(b.org, "bg"));
   };
 
-  const vendorGroups = groupInvoices(invoices);
+  const orgGroups = groupInvoices(invoices);
 
   // Load shops for the filter dropdown
   useEffect(() => {
@@ -319,28 +319,28 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {vendorGroups.map((group) => {
-                const vendorOpen = expandedVendors[group.vendor] ?? false;
+              {orgGroups.map((group) => {
+                const orgOpen = expandedOrgs[group.org] ?? false;
                 return (
-                  <div key={group.vendor}>
+                  <div key={group.org}>
                     <button
                       type="button"
-                      onClick={() => toggleVendor(group.vendor)}
+                      onClick={() => toggleOrg(group.org)}
                       className="w-full flex items-center gap-2 sm:gap-3 p-3 sm:p-4 hover:bg-secondary/50 transition-colors text-left"
                     >
-                      {vendorOpen ? (
+                      {orgOpen ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       ) : (
                         <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       )}
-                      {vendorOpen ? (
+                      {orgOpen ? (
                         <FolderOpen className="h-5 w-5 text-primary flex-shrink-0 hidden sm:block" />
                       ) : (
                         <Folder className="h-5 w-5 text-primary flex-shrink-0 hidden sm:block" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate text-sm sm:text-base">
-                          {group.vendor}
+                          {group.org}
                         </div>
                         <div className="text-xs text-muted-foreground sm:hidden">
                           {group.invoices.length} фактури
@@ -354,43 +354,39 @@ export default function DashboardPage() {
                       </span>
                     </button>
 
-                    {vendorOpen && (
+                    {orgOpen && (
                       <div className="bg-secondary/20">
-                        {group.recipients.map((recipient) => {
-                          const recipientKey = `${group.vendor}::${recipient.recipient}`;
-                          const recipientOpen =
-                            expandedRecipients[recipientKey] ?? false;
+                        {group.shops.map((shopGroup) => {
+                          const shopKey = `${group.org}::${shopGroup.shop}`;
+                          const shopOpen =
+                            expandedShops[shopKey] ?? false;
                           return (
-                            <div key={recipientKey}>
+                            <div key={shopKey}>
                               <button
                                 type="button"
-                                onClick={() => toggleRecipient(recipientKey)}
+                                onClick={() => toggleShop(shopKey)}
                                 className="w-full flex items-center gap-2 sm:gap-3 py-2 pl-6 sm:pl-10 pr-3 sm:pr-4 hover:bg-secondary/50 transition-colors text-left"
                               >
-                                {recipientOpen ? (
+                                {shopOpen ? (
                                   <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 ) : (
                                   <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 )}
-                                {recipientOpen ? (
-                                  <FolderOpen className="h-4 w-4 text-primary/70 flex-shrink-0 hidden sm:block" />
-                                ) : (
-                                  <Folder className="h-4 w-4 text-primary/70 flex-shrink-0 hidden sm:block" />
-                                )}
+                                <Store className="h-4 w-4 text-primary/70 flex-shrink-0 hidden sm:block" />
                                 <span className="text-xs sm:text-sm font-medium flex-1 truncate">
-                                  {recipient.recipient}
+                                  {shopGroup.shop}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {recipient.invoices.length}
+                                  {shopGroup.invoices.length}
                                 </span>
                                 <span className="text-xs font-medium sm:w-28 text-right">
-                                  {formatCurrency(recipient.total, recipient.currency)}
+                                  {formatCurrency(shopGroup.total, shopGroup.currency)}
                                 </span>
                               </button>
 
-                              {recipientOpen &&
-                                recipient.months.map((month) => {
-                                  const monthKey = `${recipientKey}::${month.key}`;
+                              {shopOpen &&
+                                shopGroup.months.map((month) => {
+                                  const monthKey = `${shopKey}::${month.key}`;
                                   const monthOpen = expandedMonths[monthKey] ?? true;
                                   return (
                                     <div key={monthKey}>
@@ -412,7 +408,7 @@ export default function DashboardPage() {
                                           {month.invoices.length}
                                         </span>
                                         <span className="text-xs font-medium sm:w-28 text-right">
-                                          {formatCurrency(month.total, recipient.currency)}
+                                          {formatCurrency(month.total, shopGroup.currency)}
                                         </span>
                                       </button>
 
