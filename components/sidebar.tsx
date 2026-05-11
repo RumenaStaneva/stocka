@@ -12,17 +12,23 @@ import {
   LayoutDashboard,
   Menu,
   X,
+  Users,
 } from "lucide-react";
-
-const navItems = [
-  { href: "/dashboard", label: "Табло", icon: LayoutDashboard },
-  { href: "/upload", label: "Качи фактура", icon: Upload },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
+  const canManageUsers = user?.role === "platform_admin" || user?.role === "org_admin";
+
+  const navItems = [
+    { href: "/dashboard", label: "Табло", icon: LayoutDashboard },
+    { href: "/upload", label: "Качи фактура", icon: Upload },
+    ...(canManageUsers
+      ? [{ href: "/users", label: "Потребители", icon: Users }]
+      : []),
+  ];
 
   // Close sidebar when route changes
   useEffect(() => {
@@ -49,6 +55,13 @@ export function Sidebar() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  // Role display info
+  const roleLabel = user?.role === "platform_admin"
+    ? "Администратор"
+    : user?.role === "org_admin"
+      ? user.organizationName || "Мениджър"
+      : user?.shopName || "Магазин";
 
   return (
     <>
@@ -133,7 +146,7 @@ export function Sidebar() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <p className="text-xs text-muted-foreground truncate">{roleLabel}</p>
               </div>
             </div>
             <button

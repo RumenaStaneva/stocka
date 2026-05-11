@@ -58,7 +58,7 @@ class ApiClient {
   async login(email: string, password: string) {
     const result = await this.request<{
       token: string;
-      user: { id: string; email: string; name: string };
+      user: ApiUser;
     }>("/auth/login", {
       method: "POST",
       body: { email, password },
@@ -68,7 +68,7 @@ class ApiClient {
   }
 
   async getMe() {
-    const result = await this.request<{ user: { id: string; email: string; name: string } }>("/auth/me");
+    const result = await this.request<{ user: ApiUser }>("/auth/me");
     return result.user;
   }
 
@@ -98,7 +98,7 @@ class ApiClient {
     return this.request<{ success: boolean; data: InvoiceDetail }>(`/invoices/${id}`);
   }
 
-  async createInvoice(data: { image_url: string; image_filename: string; folder_id?: string }) {
+  async createInvoice(data: { image_url: string; image_filename: string; folder_id?: string; shop_id?: string }) {
     return this.request<{ success: boolean; data: Invoice }>("/invoices", {
       method: "POST",
       body: data,
@@ -172,13 +172,48 @@ class ApiClient {
   async deleteTag(id: string) {
     return this.request<{ success: boolean }>(`/tags/${id}`, { method: "DELETE" });
   }
+
+  // Organizations
+  async getOrganizations() {
+    return this.request<{ success: boolean; data: Organization[] }>("/organizations");
+  }
+
+  // Shops
+  async getShops() {
+    return this.request<{ success: boolean; data: Shop[] }>("/shops");
+  }
+
+  // Admin — Users
+  async getUsers() {
+    return this.request<{ success: boolean; data: AdminUser[] }>("/admin/users");
+  }
+
+  async createUser(data: { email: string; name: string; role: string; organization_id?: string; shop_id?: string }) {
+    return this.request<{ success: boolean; data: { user: AdminUser; inviteLink: string } }>("/admin/users", {
+      method: "POST",
+      body: data,
+    });
+  }
 }
 
 // Types
+export interface ApiUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "platform_admin" | "org_admin" | "shop_manager";
+  organizationId: string | null;
+  organizationName: string | null;
+  shopId: string | null;
+  shopName: string | null;
+  mustChangePassword: boolean;
+}
+
 export interface Invoice {
   id: string;
   user_id: string;
   folder_id: string | null;
+  shop_id: string | null;
   document_type: "invoice" | "order";
   invoice_number: string | null;
 
@@ -289,6 +324,33 @@ export interface Tag {
   color: string;
   user_id: string;
   created_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface Shop {
+  id: string;
+  name: string;
+  address: string | null;
+  organization_id: string;
+  organization_name: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  status: string;
+  must_change_password: boolean;
+  organization_id: string | null;
+  shop_id: string | null;
+  organization_name: string | null;
+  shop_name: string | null;
 }
 
 export const api = new ApiClient();

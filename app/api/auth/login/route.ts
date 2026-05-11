@@ -16,11 +16,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
+    // Find user with org and shop info
     const users = await sql`
-      SELECT id, email, name, password_hash 
-      FROM users 
-      WHERE email = ${email}
+      SELECT
+        u.id, u.email, u.name, u.password_hash,
+        u.role, u.status, u.must_change_password,
+        u.organization_id, u.shop_id,
+        o.name AS organization_name, o.slug AS organization_slug,
+        s.name AS shop_name
+      FROM users u
+      LEFT JOIN organizations o ON u.organization_id = o.id
+      LEFT JOIN shops s ON u.shop_id = s.id
+      WHERE u.email = ${email}
     `;
 
     if (users.length === 0) {
@@ -32,6 +39,21 @@ export async function POST(request: NextRequest) {
 
     const user = users[0];
 
+    // Check user status
+    if (user.status === "disabled") {
+      return NextResponse.json(
+        { error: "Акаунтът е деактивиран. Свържете се с администратора." },
+        { status: 403 }
+      );
+    }
+
+    if (user.status === "invited") {
+      return NextResponse.json(
+        { error: "Моля, използвайте линка за покана, за да зададете парола." },
+        { status: 403 }
+      );
+    }
+
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
@@ -42,9 +64,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
+    // Generate JWT token with role and scoping info
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organization_id || null,
+        shopId: user.shop_id || null,
+      },
       process.env.JWT_SECRET || "stocka-secret-key-change-in-production",
       { expiresIn: "7d" }
     );
@@ -55,6 +83,12 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
+        organizationId: user.organization_id || null,
+        organizationName: user.organization_name || null,
+        shopId: user.shop_id || null,
+        shopName: user.shop_name || null,
+        mustChangePassword: user.must_change_password || false,
       },
       token,
     });

@@ -4,10 +4,18 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import { api } from "./api";
 
-interface User {
+export type UserRole = "platform_admin" | "org_admin" | "shop_manager";
+
+export interface User {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
+  organizationId: string | null;
+  organizationName: string | null;
+  shopId: string | null;
+  shopName: string | null;
+  mustChangePassword: boolean;
 }
 
 interface AuthContextType {
@@ -44,7 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const result = await api.login(email, password);
     setUser(result.user);
-    router.push("/dashboard");
+
+    // Force password change if needed
+    if (result.user.mustChangePassword) {
+      router.push("/change-password");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const logout = () => {

@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 function str(v: unknown): string | null {
   if (v === null || v === undefined || v === "") return null;
@@ -85,10 +86,7 @@ Amounts: If only a single total is shown with no ДДС split, put it in total_a
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    requireAuth(request);
 
     const { image_url } = await request.json();
 
@@ -198,6 +196,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     const message = error instanceof Error ? error.message : String(error);
     console.error("Error extracting invoice data:", error);
     return NextResponse.json(

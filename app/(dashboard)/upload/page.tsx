@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, Shop } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { checkImageQuality, type QualityResult } from "@/lib/image-quality";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import Image from "next/image";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -18,6 +20,20 @@ export default function UploadPage() {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [qualityResult, setQualityResult] = useState<QualityResult | null>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState<string>("");
+
+  const needsShopPicker = user?.role === "org_admin" || user?.role === "platform_admin";
+
+  // Load shops for org_admin/platform_admin
+  useEffect(() => {
+    if (needsShopPicker) {
+      api.getShops().then((res) => {
+        setShops(res.data);
+        if (res.data.length === 1) setSelectedShopId(res.data[0].id);
+      }).catch(console.error);
+    }
+  }, [needsShopPicker]);
 
   const handleFile = useCallback(async (selectedFile: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
@@ -98,6 +114,11 @@ export default function UploadPage() {
   const handleUpload = async () => {
     if (!file) return;
 
+    if (needsShopPicker && !selectedShopId) {
+      setError("Моля, изберете магазин");
+      return;
+    }
+
     setUploading(true);
     setError("");
 
@@ -105,10 +126,11 @@ export default function UploadPage() {
       // Upload file to Blob storage
       const uploadResult = await api.uploadFile(file);
 
-      // Create invoice record
+      // Create invoice record with shop_id
       const invoiceResult = await api.createInvoice({
         image_url: uploadResult.data.url,
         image_filename: uploadResult.data.filename,
+        ...(selectedShopId && { shop_id: selectedShopId }),
       });
 
       // Redirect to extraction/review page
@@ -295,6 +317,27 @@ export default function UploadPage() {
                   <p className="text-xs text-amber-600 dark:text-amber-400 ml-6">
                     Моля, направете нова снимка за по-точно извличане на данни.
                   </p>
+                </div>
+              )}
+
+              {/* Shop Picker for org_admin/platform_admin */}
+              {needsShopPicker && shops.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    За кой магазин е тази фактура?
+                  </label>
+                  <select
+                    value={selectedShopId}
+                    onChange={(e) => setSelectedShopId(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Изберете магазин...</option>
+                    {shops.map((shop) => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
