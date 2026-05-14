@@ -4,39 +4,24 @@ import { requireAuth, AuthError } from "@/lib/auth";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// GET — list users (scoped by role)
+// GET — list users (platform_admin only)
 export async function GET(request: NextRequest) {
   try {
     const user = requireAuth(request);
 
-    if (user.role !== "platform_admin" && user.role !== "org_admin") {
+    if (user.role !== "platform_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let users;
-    if (user.role === "platform_admin") {
-      users = await sql`
-        SELECT u.id, u.email, u.name, u.role, u.status, u.must_change_password,
-          u.organization_id, u.shop_id,
-          o.name as organization_name, s.name as shop_name
-        FROM users u
-        LEFT JOIN organizations o ON u.organization_id = o.id
-        LEFT JOIN shops s ON u.shop_id = s.id
-        ORDER BY o.name NULLS FIRST, u.role, u.name
-      `;
-    } else {
-      // org_admin — only their org
-      users = await sql`
-        SELECT u.id, u.email, u.name, u.role, u.status, u.must_change_password,
-          u.organization_id, u.shop_id,
-          o.name as organization_name, s.name as shop_name
-        FROM users u
-        LEFT JOIN organizations o ON u.organization_id = o.id
-        LEFT JOIN shops s ON u.shop_id = s.id
-        WHERE u.organization_id = ${user.organizationId}::uuid
-        ORDER BY u.role, u.name
-      `;
-    }
+    const users = await sql`
+      SELECT u.id, u.email, u.name, u.role, u.status, u.must_change_password,
+        u.organization_id, u.shop_id,
+        o.name as organization_name, s.name as shop_name
+      FROM users u
+      LEFT JOIN organizations o ON u.organization_id = o.id
+      LEFT JOIN shops s ON u.shop_id = s.id
+      ORDER BY o.name NULLS FIRST, u.role, u.name
+    `;
 
     return NextResponse.json({ success: true, data: users });
   } catch (error) {
@@ -48,12 +33,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST — create a new user + generate invite token
+// POST — create a new user + generate invite token (platform_admin only)
 export async function POST(request: NextRequest) {
   try {
     const user = requireAuth(request);
 
-    if (user.role !== "platform_admin" && user.role !== "org_admin") {
+    if (user.role !== "platform_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -72,12 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Невалидна роля" }, { status: 400 });
     }
 
-    // Determine organization_id
     let orgId = organization_id;
-    if (user.role === "org_admin") {
-      // org_admin can only create users in their own org
-      orgId = user.organizationId;
-    }
 
     // For shop_manager: validate shop and derive org from it
     if (role === "shop_manager") {
@@ -88,13 +68,7 @@ export async function POST(request: NextRequest) {
       if (shops.length === 0) {
         return NextResponse.json({ error: "Магазинът не е намерен" }, { status: 400 });
       }
-      // Derive org from shop
-      const shopOrgId = shops[0].organization_id;
-      // org_admin can only assign shops in their org
-      if (user.role === "org_admin" && shopOrgId !== user.organizationId) {
-        return NextResponse.json({ error: "Магазинът не е от вашата организация" }, { status: 403 });
-      }
-      orgId = shopOrgId;
+      orgId = shops[0].organization_id;
     }
 
     // For org_admin: must have an organization
@@ -102,7 +76,6 @@ export async function POST(request: NextRequest) {
       if (!orgId) {
         return NextResponse.json({ error: "Изберете организация" }, { status: 400 });
       }
-      // Verify org exists
       const orgs = await sql`SELECT id FROM organizations WHERE id = ${orgId}::uuid`;
       if (orgs.length === 0) {
         return NextResponse.json({ error: "Организацията не е намерена" }, { status: 400 });

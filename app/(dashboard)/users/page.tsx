@@ -40,12 +40,12 @@ export default function UsersPage() {
   const [formOrgId, setFormOrgId] = useState("");
   const [formShopId, setFormShopId] = useState("");
 
-  const canManage = user?.role === "platform_admin" || user?.role === "org_admin";
+  const canManage = user?.role === "platform_admin";
 
-  // Filter shops by selected org (for platform_admin)
-  const filteredShops = user?.role === "platform_admin" && formOrgId
+  // Filter shops by selected org
+  const filteredShops = formOrgId
     ? shops.filter((s) => s.organization_id === formOrgId)
-    : shops;
+    : [];
 
   useEffect(() => {
     if (!canManage) {
@@ -55,20 +55,14 @@ export default function UsersPage() {
 
     const loadData = async () => {
       try {
-        const promises: Promise<unknown>[] = [
+        const [usersRes, shopsRes, orgsRes] = await Promise.all([
           api.getUsers(),
           api.getShops(),
-        ];
-        if (user?.role === "platform_admin") {
-          promises.push(api.getOrganizations());
-        }
-
-        const results = await Promise.all(promises);
-        setUsers((results[0] as { data: AdminUser[] }).data);
-        setShops((results[1] as { data: Shop[] }).data);
-        if (results[2]) {
-          setOrganizations((results[2] as { data: Organization[] }).data);
-        }
+          api.getOrganizations(),
+        ]);
+        setUsers((usersRes as { data: AdminUser[] }).data);
+        setShops((shopsRes as { data: Shop[] }).data);
+        setOrganizations((orgsRes as { data: Organization[] }).data);
       } catch (err) {
         console.error("Failed to load users:", err);
       } finally {
@@ -77,7 +71,7 @@ export default function UsersPage() {
     };
 
     loadData();
-  }, [canManage, router, user?.role]);
+  }, [canManage, router]);
 
   // Reset shop when org changes
   useEffect(() => {
@@ -94,7 +88,7 @@ export default function UsersPage() {
         email: formEmail,
         name: formEmail.split("@")[0],
         role: formRole,
-        ...(formRole === "org_admin" && formOrgId && { organization_id: formOrgId }),
+        organization_id: formOrgId,
         ...(formRole === "shop_manager" && formShopId && { shop_id: formShopId }),
       });
 
@@ -184,61 +178,58 @@ export default function UsersPage() {
                 required
               />
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Роля</label>
+                <select
+                  value={formRole}
+                  onChange={(e) => setFormRole(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="shop_manager">Мениджър магазин</option>
+                  <option value="org_admin">Мениджър организация</option>
+                </select>
+              </div>
+
+              {/* Org picker — always required for both roles */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Организация</label>
+                <select
+                  value={formOrgId}
+                  onChange={(e) => setFormOrgId(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  required
+                >
+                  <option value="">Изберете организация...</option>
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Shop picker — only for shop_manager, filtered by chosen org */}
+              {formRole === "shop_manager" && (
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Роля</label>
+                  <label className="block text-sm font-medium mb-1.5">Магазин</label>
                   <select
-                    value={formRole}
-                    onChange={(e) => setFormRole(e.target.value)}
+                    value={formShopId}
+                    onChange={(e) => setFormShopId(e.target.value)}
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    required
+                    disabled={!formOrgId}
                   >
-                    <option value="shop_manager">Мениджър магазин</option>
-                    <option value="org_admin">Мениджър организация</option>
+                    <option value="">
+                      {formOrgId ? "Изберете магазин..." : "Първо изберете организация"}
+                    </option>
+                    {filteredShops.map((shop) => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
-
-                {/* Org picker — platform_admin creating org_admin */}
-                {formRole === "org_admin" && user?.role === "platform_admin" && organizations.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Организация</label>
-                    <select
-                      value={formOrgId}
-                      onChange={(e) => setFormOrgId(e.target.value)}
-                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                      required
-                    >
-                      <option value="">Изберете организация...</option>
-                      {organizations.map((org) => (
-                        <option key={org.id} value={org.id}>
-                          {org.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Shop picker — for shop_manager role */}
-                {formRole === "shop_manager" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Магазин</label>
-                    <select
-                      value={formShopId}
-                      onChange={(e) => setFormShopId(e.target.value)}
-                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                      required
-                    >
-                      <option value="">Изберете магазин...</option>
-                      {filteredShops.map((shop) => (
-                        <option key={shop.id} value={shop.id}>
-                          {user?.role === "platform_admin"
-                            ? `${shop.organization_name} — ${shop.name}`
-                            : shop.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
+              )}
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
