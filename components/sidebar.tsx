@@ -20,7 +20,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const canManageUsers = user?.role === "platform_admin" || user?.role === "org_admin";
+  const canManageUsers = user?.role === "platform_admin";
 
   const navItems = [
     { href: "/dashboard", label: "Табло", icon: LayoutDashboard },

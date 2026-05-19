@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { checkImageQuality, type QualityResult } from "@/lib/image-quality";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select } from "@/components/ui/select";
 import { Upload, Camera, X, FileImage, Loader2, AlertTriangle, Sun, Move, ZoomIn, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
@@ -327,19 +328,17 @@ export default function UploadPage() {
                   <label className="block text-sm font-medium mb-1.5">
                     За кой магазин е тази фактура? <span className="text-destructive">*</span>
                   </label>
-                  <select
+                  <Select
                     value={selectedShopId}
-                    onChange={(e) => setSelectedShopId(e.target.value)}
+                    onChange={setSelectedShopId}
                     disabled={isShopManager}
-                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Изберете магазин...</option>
-                    {shops.map((shop) => (
-                      <option key={shop.id} value={shop.id}>
-                        {shop.name.replace(/^.*-\s*/, "")}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Изберете магазин..."
+                    aria-label="За кой магазин е тази фактура?"
+                    options={shops.map((shop) => ({
+                      value: shop.id,
+                      label: shop.name.replace(/^.*-\s*/, ""),
+                    }))}
+                  />
                 </div>
               )}
 
