@@ -77,7 +77,7 @@ export function canAccessShop(user: AuthUser, shopId: string): boolean {
  * Check if a user can create/disable/manage other users.
  */
 export function canManageUsers(user: AuthUser): boolean {
-  return user.role === "platform_admin" || user.role === "org_admin";
+  return user.role === "platform_admin";
 }
 
 /**

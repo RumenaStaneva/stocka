@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     console.log(`[extract] resized: ${originalBuffer.byteLength} → ${resized.byteLength} bytes`);
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-haiku-4-5-20251001"),
       messages: [
         {
           role: "user",
