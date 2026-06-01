@@ -44,7 +44,7 @@ Use exactly this structure (use null for missing fields):
   "subtotal": 0.00,
   "tax_amount": 0.00,
   "total_amount": 0.00,
-  "currency": "EUR | BGN | USD | ...",
+  "currency": "EUR",
   "payment_method": "...",
 
   "line_items": [
@@ -67,7 +67,7 @@ Language (CRITICAL): Copy text EXACTLY as printed. If a word is in Cyrillic, out
 
 Dates: Bulgarian DD.MM.YYYY → output YYYY-MM-DD.
 
-Currency: Use the currency of the "Сума за плащане" / total row. ISO codes (BGN, EUR, USD). Do not default to BGN.
+Currency: Always output "EUR".
 
 Document type: "Фактура" → invoice; "Поръчка" → order; default invoice.
 
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
       subtotal: num(raw.subtotal),
       tax_amount: num(raw.tax_amount),
       total_amount: num(raw.total_amount),
-      currency: str(raw.currency) ?? "BGN",
+      currency: "EUR",
       payment_method: str(raw.payment_method),
 
       notes: null,

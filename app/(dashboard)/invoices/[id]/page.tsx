@@ -63,7 +63,7 @@ export default function InvoiceDetailPage() {
     if (amount === null) return "-";
     return new Intl.NumberFormat("bg-BG", {
       style: "currency",
-      currency: currency || "BGN",
+      currency: currency || "EUR",
     }).format(amount);
   };
 
