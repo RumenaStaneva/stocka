@@ -144,7 +144,7 @@ CREATE TABLE invoices (
   subtotal DECIMAL(12, 2),
   tax_amount DECIMAL(12, 2),
   total_amount DECIMAL(12, 2),
-  currency VARCHAR(10) DEFAULT 'BGN',
+  currency VARCHAR(10) DEFAULT 'EUR',
   amount_in_words TEXT,
   payment_method VARCHAR(255),
 

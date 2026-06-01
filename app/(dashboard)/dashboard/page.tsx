@@ -130,7 +130,7 @@ export default function DashboardPage() {
           shop,
           invoices: shopInvoices,
           total: shopInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
-          currency: shopInvoices.find((i) => i.currency)?.currency || "BGN",
+          currency: shopInvoices.find((i) => i.currency)?.currency || "EUR",
           months: buildMonths(shopInvoices),
         }))
         .sort((a, b) => a.shop.localeCompare(b.shop, "bg"));
@@ -139,7 +139,7 @@ export default function DashboardPage() {
         org,
         invoices: orgInvoices,
         total: orgInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0),
-        currency: orgInvoices.find((i) => i.currency)?.currency || "BGN",
+        currency: orgInvoices.find((i) => i.currency)?.currency || "EUR",
         shops,
       });
     }
@@ -201,7 +201,7 @@ export default function DashboardPage() {
     if (amount === null) return "-";
     return new Intl.NumberFormat("bg-BG", {
       style: "currency",
-      currency: currency || "BGN",
+      currency: currency || "EUR",
     }).format(amount);
   };
 

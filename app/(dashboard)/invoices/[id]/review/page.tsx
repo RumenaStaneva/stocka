@@ -80,7 +80,7 @@ export default function ReviewPage() {
     subtotal: "",
     tax_amount: "",
     total_amount: "",
-    currency: "BGN",
+    currency: "EUR",
 
     payment_method: "",
     notes: "",
@@ -97,7 +97,6 @@ export default function ReviewPage() {
         const alwaysVisible = new Set<string>([
           "document_type",
           "invoice_number",
-          "currency",
           "vendor_name",
           "recipient_name",
           "total_amount",
@@ -146,7 +145,7 @@ export default function ReviewPage() {
           subtotal: result.data.subtotal?.toString() || "",
           tax_amount: result.data.tax_amount?.toString() || "",
           total_amount: result.data.total_amount?.toString() || "",
-          currency: result.data.currency || "BGN",
+          currency: result.data.currency || "EUR",
 
           payment_method: result.data.payment_method || "",
           notes: result.data.notes || "",
@@ -357,11 +356,6 @@ export default function ReviewPage() {
                 label="Номер"
                 value={formData.invoice_number}
                 onChange={(e) => handleChange("invoice_number", e.target.value)}
-              />
-              <Input
-                label="Валута"
-                value={formData.currency}
-                onChange={(e) => handleChange("currency", e.target.value)}
               />
               {visibleFields.has("invoice_date") && (
                 <Input
